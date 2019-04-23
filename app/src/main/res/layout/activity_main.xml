@@ -22,6 +22,12 @@
             android:layout_below="@id/inputLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/openMap"
+            android:text="@string/openMap"
+            android:layout_below="@id/lookupLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
 
 

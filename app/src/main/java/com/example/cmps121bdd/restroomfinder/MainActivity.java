@@ -25,9 +25,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         EditText inputLocation = findViewById(R.id.inputLocation);
         Button lookupLocation = findViewById(R.id.lookupLocation);
+        Button openMap = findViewById(R.id.openMap);
 
         String inputLocation_text = inputLocation.getText().toString();
         lookupLocation.setOnClickListener(this);
+        openMap.setOnClickListener(this);
 
     }
 
@@ -35,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-
             case R.id.lookupLocation:
 
                 EditText inputLocation = findViewById(R.id.inputLocation);              //Reference to user's input text
@@ -44,6 +45,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent1 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
                 intent1.putExtra("location",inputLocation_text);                    //Adding user input to intent
                 startActivity(intent1);                                                    //starting MapActivity with input
+
+            case R.id.openMap:
+                Intent intent2 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
+                startActivity(intent2);                                                    //starting MapActivity with input
+
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.cmps121bdd.restroomfinder;
 
 
-import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -28,8 +27,10 @@ import com.google.android.gms.tasks.Task;
 public class MapsActivity extends FragmentActivity implements
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback  {
-
+    //TAG for Logs
     String TAG = "MAPACTIVITY";
+
+
     private GoogleMap mMap;
     private Location mLastKnownLocation;
 
@@ -68,6 +69,7 @@ public class MapsActivity extends FragmentActivity implements
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        // Get permission from the User to access their location.
         getLocationPermission();
 
     }

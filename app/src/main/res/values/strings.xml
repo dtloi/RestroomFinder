@@ -3,4 +3,5 @@
     <string name="title_activity_maps">Map</string>
     <string name="locationHint">Enter your current location</string>
     <string name="search">Search</string>
+    <string name="openMap">Open Map</string>
 </resources>
