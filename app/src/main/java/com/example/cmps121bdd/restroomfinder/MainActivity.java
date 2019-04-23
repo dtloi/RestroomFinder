@@ -16,7 +16,6 @@ import static com.example.cmps121bdd.restroomfinder.R.id.lookupLocation;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    boolean mLocationPermissionGranted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
