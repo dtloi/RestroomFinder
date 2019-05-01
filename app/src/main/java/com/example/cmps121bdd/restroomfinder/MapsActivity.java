@@ -282,8 +282,9 @@ public class MapsActivity extends FragmentActivity implements
         if (list.size() > 0) {
             Address address = list.get(0);
             LatLng location = new LatLng(address.getLatitude(), address.getLongitude()); // get lat and lng of input location
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(location)); //move camera to input location
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
             mMap.addMarker(new MarkerOptions().position(location).title(inputLocation)); //add marker
+
 
         }
     }
@@ -304,4 +305,3 @@ public class MapsActivity extends FragmentActivity implements
 
     }
 }
-
