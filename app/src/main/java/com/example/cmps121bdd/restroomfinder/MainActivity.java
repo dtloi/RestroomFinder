@@ -44,11 +44,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent1 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
                 intent1.putExtra("location",inputLocation_text);                    //Adding user input to intent
                 startActivity(intent1);                                                    //starting MapActivity with input
-
+                break;
+                
             case R.id.openMap:
                 Intent intent2 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
                 startActivity(intent2);                                                    //starting MapActivity with input
-
+                break;
+                
         }
     }
 }
