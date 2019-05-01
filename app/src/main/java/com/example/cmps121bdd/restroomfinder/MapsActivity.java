@@ -1,6 +1,7 @@
 package com.example.cmps121bdd.restroomfinder;
 
 
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -11,6 +12,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.location.Geocoder;
+import java.io.IOException;
+import java.util.*;
+import android.location.Address;
+
+
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -59,9 +66,17 @@ public class MapsActivity extends FragmentActivity implements
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mLocationPermissionGranted;
 
+    String inputLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Intent i = getIntent();
+
+        inputLocation = i.getStringExtra("location");
+
+
 
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_maps);
@@ -247,11 +262,32 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        geoLocate();
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        //LatLng sydney = new LatLng(-34, 151);
+        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
+
+    public void geoLocate(){
+        Geocoder geocoder = new Geocoder(MapsActivity.this);
+        Log.d(MapsActivity.class.getSimpleName(),"inputLocation = " + inputLocation);
+        List<Address> list = new ArrayList<>(); // list of results when user types
+        try{
+            list = geocoder.getFromLocationName(inputLocation, 1); // only get first result
+
+        }catch (IOException e){
+            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
+        }
+        if (list.size() > 0) {
+            Address address = list.get(0);
+            LatLng location = new LatLng(address.getLatitude(), address.getLongitude()); // get lat and lng of input location
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(location)); //move camera to input location
+            mMap.addMarker(new MarkerOptions().position(location).title(inputLocation)); //add marker
+
+        }
+    }
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -268,3 +304,4 @@ public class MapsActivity extends FragmentActivity implements
 
     }
 }
+
