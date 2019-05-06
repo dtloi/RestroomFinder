@@ -4,8 +4,12 @@ package com.example.cmps121bdd.restroomfinder;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -14,6 +18,11 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.location.Geocoder;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import android.location.Address;
 
@@ -31,6 +40,7 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -42,6 +52,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class MapsActivity extends FragmentActivity implements
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -49,7 +63,7 @@ public class MapsActivity extends FragmentActivity implements
     String TAG = "MAPACTIVITY";
 
 
-    private GoogleMap mMap;
+    private static GoogleMap mMap;
     private Location mLastKnownLocation;
 
     // Keys for storing activity state.
@@ -67,6 +81,7 @@ public class MapsActivity extends FragmentActivity implements
     private boolean mLocationPermissionGranted;
 
     String inputLocation;
+    static String API_Key = "AIzaSyAzwUcfSl7n2LkvecKKrw1cLnNmITbV97Y";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -283,12 +298,91 @@ public class MapsActivity extends FragmentActivity implements
             Address address = list.get(0);
             LatLng location = new LatLng(address.getLatitude(), address.getLongitude()); // get lat and lng of input location
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
-            mMap.addMarker(new MarkerOptions().position(location).title(inputLocation)); //add marker
+            mMap.addMarker(new MarkerOptions().position(location).title(inputLocation.toUpperCase())); //add marker
+            performSearch(address);
+
+        }
+
+    }
+
+    private HttpURLConnection conn = null;
 
 
+    public void performSearch(Address a)
+    {
+
+        StringBuilder b = new StringBuilder();
+        b.append("https://maps.googleapis.com/maps/api/place/textsearch/json?");
+        b.append("location=37,-122"); // hard coded to ucsc
+        b.append("&query=restrooms");
+        b.append("&key=" + API_Key);
+        //MainActivity.textView.setText(b.toString());
+
+        BackTask imageDownloader = new BackTask();
+        imageDownloader.execute(b.toString());
+
+    }
+
+    public static void placeMarkers(String s){
+        try {
+            // Create a JSON object hierarchy from the results
+            JSONObject jsonObj = new JSONObject(s);
+            JSONArray predsJsonArray = jsonObj.getJSONArray("results");
+
+            // Extract the lat and lng and add markers there
+            for (int i = 0; i < predsJsonArray.length(); i++) {
+                JSONObject jsonObject = (JSONObject) predsJsonArray.get(i);
+                JSONObject jsonObject2 = (JSONObject) jsonObject.get("geometry");
+                JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
+
+                LatLng location = new LatLng((Double)jsonObject3.get("lat"), (Double)jsonObject3.get("lng"));
+                mMap.addMarker(new MarkerOptions().position(location).title("Bathroom"));
+
+            }
+        } catch (JSONException e) {
+            //Log.e(LOG_TAG, "Error processing JSON results", e);
         }
     }
 
+    public static class BackTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            StringBuilder jsonResults = new StringBuilder();
+
+            URL url;
+            HttpURLConnection conn = null;
+            try {
+                url = new URL(strings[0]);
+                conn = (HttpURLConnection) url.openConnection();
+                InputStreamReader in = new InputStreamReader(conn.getInputStream());
+
+                int read;
+                char[] buff = new char[1024];
+                while ((read = in.read(buff)) != -1) { // read json output
+                    jsonResults.append(buff, 0, read);
+                }
+                return jsonResults.toString();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            //MainActivity.textView.setText(s);
+            super.onPostExecute(s);
+            placeMarkers(s);
+        }
+    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -305,3 +399,4 @@ public class MapsActivity extends FragmentActivity implements
 
     }
 }
+
