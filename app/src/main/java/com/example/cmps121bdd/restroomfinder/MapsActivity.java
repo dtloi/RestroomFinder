@@ -313,7 +313,8 @@ public class MapsActivity extends FragmentActivity implements
 
         StringBuilder b = new StringBuilder();
         b.append("https://maps.googleapis.com/maps/api/place/textsearch/json?");
-        b.append("location=37,-122"); // hard coded to ucsc
+        b.append("location=" + a.getLatitude()+","+a.getLongitude());
+        //b.append("location=37,-122"); // hard coded to ucsc
         b.append("&query=restrooms");
         b.append("&key=" + API_Key);
         //MainActivity.textView.setText(b.toString());
@@ -399,4 +400,3 @@ public class MapsActivity extends FragmentActivity implements
 
     }
 }
-
