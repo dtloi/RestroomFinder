@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
 public class MapsActivity extends FragmentActivity implements
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
@@ -56,6 +55,7 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMyLocationClickListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
+    private static final boolean TODO = false;
     //TAG for Logs
     String TAG = "MAPACTIVITY";
 
@@ -98,9 +98,9 @@ public class MapsActivity extends FragmentActivity implements
         mapFragment.getMapAsync(this);
 
         Intent i = getIntent();
-        if(i == null){
+        if (i == null) {
             inputLocation = "ucsc";
-        }else{
+        } else {
             inputLocation = i.getStringExtra("location");
         }
 
@@ -112,11 +112,10 @@ public class MapsActivity extends FragmentActivity implements
         // ASK USER TO ENABLE GPS
     }
 
-    public void performSearch(Address a)
-    {
+    public void performSearch(Address a) {
         StringBuilder b = new StringBuilder();
         b.append("https://maps.googleapis.com/maps/api/place/textsearch/json?");
-        b.append("location=" + a.getLatitude()+","+a.getLongitude());
+        b.append("location=" + a.getLatitude() + "," + a.getLongitude());
         b.append("&query=restrooms");
         b.append("&key=" + API_Key);
         //MainActivity.textView.setText(b.toString());
@@ -125,7 +124,8 @@ public class MapsActivity extends FragmentActivity implements
         imageDownloader.execute(b.toString());
 
     }
-    public static void placeMarkers(String s){
+
+    public static void placeMarkers(String s) {
         try {
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(s);
@@ -137,7 +137,7 @@ public class MapsActivity extends FragmentActivity implements
                 JSONObject jsonObject2 = (JSONObject) jsonObject.get("geometry");
                 JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
 
-                LatLng location = new LatLng((Double)jsonObject3.get("lat"), (Double)jsonObject3.get("lng"));
+                LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
                 mMap.addMarker(new MarkerOptions().position(location).title("Bathroom"));
 
             }
@@ -146,16 +146,16 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
-    public void geoLocate(){
+    public void geoLocate() {
         Geocoder geocoder = new Geocoder(MapsActivity.this);
-        Log.d(MapsActivity.class.getSimpleName(),"inputLocation = " + inputLocation);
+        Log.d(MapsActivity.class.getSimpleName(), "inputLocation = " + inputLocation);
         List<Address> list = new ArrayList<>(); // list of results when user types
-        if(inputLocation!=null){
-            try{
+        if (inputLocation != null) {
+            try {
                 list = geocoder.getFromLocationName(inputLocation, 1); // only get first result
 
-            }catch (IOException e){
-                Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
+            } catch (IOException e) {
+                Log.e(TAG, "geoLocate: IOException: " + e.getMessage());
             }
             if (list.size() > 0) {
                 Address address = list.get(0);
@@ -168,7 +168,7 @@ public class MapsActivity extends FragmentActivity implements
     }
 
     //Check if GPS is enabled, if not, enables
-    public void enableGPS(){
+    public void enableGPS() {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -210,13 +210,49 @@ public class MapsActivity extends FragmentActivity implements
             }
         });
     }
-    public void checkGPS(){
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+
+    public void checkGPS() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             enableGPS();
         }
     }
     //Check if GPS is enabled, if not, enables
+
+    //Current location button on map
+    @Override
+    public boolean onMyLocationButtonClick() {
+        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        // Return false so that we don't consume the event and the default behavior still occurs
+        // (the camera animates to the user's current position).
+        /*LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return TODO;
+        }
+        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        double longitude = location.getLongitude();
+        double latitude = location.getLatitude();
+        LatLng user_location = new LatLng(longitude, latitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(user_location, DEFAULT_ZOOM)); //move camera to input location
+        mMap.addMarker(new MarkerOptions().position(user_location).title(inputLocation.toUpperCase())); //add marker
+        //performSearch(address);*/
+        checkGPS();
+        return false;
+    }
+
+    @Override
+    public void onMyLocationClick(@NonNull Location location) {
+        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
+        checkGPS();
+    }
+    //Current location button on map
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -307,19 +343,5 @@ public class MapsActivity extends FragmentActivity implements
     }
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
-    @Override
-    public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        checkGPS();
-        return false;
-    }
-
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
-        checkGPS();
-    }
 
 }
