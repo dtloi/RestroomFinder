@@ -76,12 +76,6 @@ public class MapsActivity extends FragmentActivity implements
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Construct a GeoDataClient.
-        GeoDataClient mGeoDataClient = Places.getGeoDataClient(this);
-
-        // Construct a PlaceDetectionClient.
-        PlaceDetectionClient mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
-
         // Build the Map.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
