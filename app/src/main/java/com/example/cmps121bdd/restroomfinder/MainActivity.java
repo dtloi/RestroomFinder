@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import static com.example.cmps121bdd.restroomfinder.R.id.lookupLocation;
 
@@ -40,14 +41,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 EditText inputLocation = findViewById(R.id.inputLocation);              //Reference to user's input text
                 String inputLocation_text = inputLocation.getText().toString();         //Grabbing said text
+                if (inputLocation_text.equals("")){
+                    Toast.makeText(this, "Please input location.", Toast.LENGTH_LONG).show();
+                    break;
+                }else{
+                    Intent intent1 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
+                    intent1.putExtra("location",inputLocation_text);                    //Adding user input to intent
+                    startActivity(intent1);                                                    //starting MapActivity with input
+                    break;
+                }
 
-                Intent intent1 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
-                intent1.putExtra("location",inputLocation_text);                    //Adding user input to intent
-                startActivity(intent1);                                                    //starting MapActivity with input
 
             case R.id.openMap:
                 Intent intent2 = new Intent (this, MapsActivity.class);    //Creating intent to pass to MapActivity
                 startActivity(intent2);                                                    //starting MapActivity with input
+                break;
 
         }
     }
