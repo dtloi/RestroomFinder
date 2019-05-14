@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "571947789415",
+    "firebase_url": "https://restroomfinder-7ee21.firebaseio.com",
+    "project_id": "restroomfinder-7ee21",
+    "storage_bucket": "restroomfinder-7ee21.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:571947789415:android:9fd8c566083e39fe",
+        "android_client_info": {
+          "package_name": "com.example.cmps121bdd.restroomfinder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "571947789415-7sokj191briui5iqs7ji70lonv500nqr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDttENbrtK3EOg2rp2xKx1MUvcxW8viDxQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "571947789415-7sokj191briui5iqs7ji70lonv500nqr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
