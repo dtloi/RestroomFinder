@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,6 +37,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
@@ -122,7 +124,6 @@ public class MapsActivity extends FragmentActivity implements
 
         BackTask imageDownloader = new BackTask();
         imageDownloader.execute(b.toString());
-
     }
 
     public static void placeMarkers(String s) {
@@ -210,7 +211,6 @@ public class MapsActivity extends FragmentActivity implements
             }
         });
     }
-
     public void checkGPS() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -223,9 +223,7 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        /*LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -236,15 +234,29 @@ public class MapsActivity extends FragmentActivity implements
             // for ActivityCompat#requestPermissions for more details.
             return TODO;
         }
-        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        double longitude = location.getLongitude();
-        double latitude = location.getLatitude();
-        LatLng user_location = new LatLng(longitude, latitude);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(user_location, DEFAULT_ZOOM)); //move camera to input location
-        mMap.addMarker(new MarkerOptions().position(user_location).title(inputLocation.toUpperCase())); //add marker
-        //performSearch(address);*/
+        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    locateUser(location);
+                }
+            }
+        });
+
         checkGPS();
         return false;
+    }
+
+    public void locateUser(Location location) {
+        StringBuilder b = new StringBuilder();
+        b.append("https://maps.googleapis.com/maps/api/place/textsearch/json?");
+        b.append("location=" + location.getLatitude() + "," + location.getLongitude());
+        b.append("&query=restrooms");
+        b.append("&key=" + API_Key);
+        //MainActivity.textView.setText(b.toString());
+
+        BackTask imageDownloader = new BackTask();
+        imageDownloader.execute(b.toString());
     }
 
     @Override
