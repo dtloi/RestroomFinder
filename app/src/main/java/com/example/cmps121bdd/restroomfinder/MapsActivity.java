@@ -35,6 +35,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -50,7 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MapsActivity extends FragmentActivity implements
+public class MapsActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleMap.OnMyLocationButtonClickListener,
@@ -273,6 +274,7 @@ public class MapsActivity extends FragmentActivity implements
         geoLocate();
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
+        mMap.setOnMarkerClickListener((GoogleMap.OnMarkerClickListener) this);
         enableMyLocation();
     }
 
@@ -352,6 +354,12 @@ public class MapsActivity extends FragmentActivity implements
             // Display the missing permission error dialog when the fragments resume.
             mPermissionDenied = true;
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Toast.makeText(this, "Marker clicked", Toast.LENGTH_LONG).show();
+        return false;
     }
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
