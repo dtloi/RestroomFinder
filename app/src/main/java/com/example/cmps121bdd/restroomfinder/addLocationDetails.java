@@ -62,17 +62,17 @@ public class addLocationDetails extends AppCompatActivity implements View.OnClic
         switch(v.getId()) {
 
             case R.id.addlocMap:
-            String location = locName.getText().toString();
-            if (location.equals("")){
-                Toast.makeText(this,"Please input a name", Toast.LENGTH_LONG).show();
-                break;
-            }else {
-                Intent intent1 = new Intent(this, newLocation.class);    //Creating intent to pass to MapActivity
-                intent1.putExtra("location", location);                    //Adding user input to intent
-                startActivity(intent1);
-                finish();
-                break;
-            }
+                String location = locName.getText().toString();
+                if (location.equals("")){
+                    Toast.makeText(this,"Please input a name", Toast.LENGTH_LONG).show();
+                    break;
+                }else {
+                    Intent intent1 = new Intent(this, newLocation.class);    //Creating intent to pass to MapActivity
+                    intent1.putExtra("location", location);                    //Adding user input to intent
+                    startActivity(intent1);
+                    finish();
+                    break;
+                }
             case R.id.getLocationBtn:
                 displayCoor();
                 break;

@@ -18,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -51,7 +52,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MapsActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener,
+public class MapsActivity extends FragmentActivity implements
+        GoogleMap.OnMarkerClickListener,
+        GoogleMap.InfoWindowAdapter,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleMap.OnMyLocationButtonClickListener,
@@ -140,7 +143,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMarker
                 JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
 
                 LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
-                mMap.addMarker(new MarkerOptions().position(location).title("Bathroom"));
+                mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
 
             }
         } catch (JSONException e) {
@@ -274,9 +277,33 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMarker
         geoLocate();
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
-        mMap.setOnMarkerClickListener((GoogleMap.OnMarkerClickListener) this);
+        mMap.setOnMarkerClickListener(this);
         enableMyLocation();
+        mMap.setInfoWindowAdapter(new markerView(this));
     }
+    //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        String mark_title = marker.getTitle();
+        if(mark_title.equals("Restroom")){
+            Toast.makeText(this, "This is a restroom", Toast.LENGTH_LONG).show();
+            marker.showInfoWindow();
+        }
+        return false;
+    }
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        //View MarkerView = findViewById(R.id.markerView);
+        //return MarkerView;
+        return null;
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        return null;
+    }
+    //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -356,11 +383,6 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMarker
         }
     }
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        Toast.makeText(this, "Marker clicked", Toast.LENGTH_LONG).show();
-        return false;
-    }
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
 
