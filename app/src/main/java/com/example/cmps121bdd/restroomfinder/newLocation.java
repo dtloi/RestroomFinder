@@ -20,6 +20,7 @@ import java.util.Map;
 public class newLocation extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    String inputLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,7 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
         mapFragment.getMapAsync(this);
 
         Intent bundle = getIntent();
-        String inputLocation = bundle.getStringExtra("location");
+        inputLocation = bundle.getStringExtra("location");
 
     }
 
@@ -47,7 +48,7 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("Location");
+        final DatabaseReference myRef = database.getReference("Locations");
         mMap = googleMap;
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -57,6 +58,9 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
                 double lat = point.latitude;
                 double lng = point.longitude;
                 Map<String, Object> location = new HashMap<>();
+                myRef.child(inputLocation).child("Latitude").setValue(lat);
+                myRef.child(inputLocation).child("Longitude").setValue(lng);
+
             }
         });
     }
