@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -56,6 +58,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class MapsActivity extends FragmentActivity implements
@@ -122,6 +125,7 @@ public class MapsActivity extends FragmentActivity implements
         // ASK USER TO ENABLE GPS
         enableGPS();
         // ASK USER TO ENABLE GPS
+
     }
 
     public void performSearch(Address a) {

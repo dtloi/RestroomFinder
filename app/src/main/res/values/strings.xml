@@ -12,4 +12,5 @@
     <string name="title_activity_new_location">Map</string>
     <string name="restroom_name">Restroom Name</string>
     <string name="open_map">Open Map</string>
+    <string name="addLoc">Add LOcation</string>
 </resources>
