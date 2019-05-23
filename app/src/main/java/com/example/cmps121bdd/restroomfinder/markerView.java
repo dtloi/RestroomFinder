@@ -27,8 +27,8 @@ public class markerView implements GoogleMap.InfoWindowAdapter {
         // res/layout folder. You can provide your own
         View v = inflater.inflate(R.layout.activity_marker_view, null);
 
-        TextView title = (TextView) v.findViewById(R.id.info_window_title);
-        TextView subtitle = (TextView) v.findViewById(R.id.info_window_subtitle);
+        TextView title = v.findViewById(R.id.info_window_title);
+        TextView subtitle = v.findViewById(R.id.info_window_subtitle);
         title.setText(marker.getTitle());
         subtitle.setText(marker.getTitle());
         return v;
