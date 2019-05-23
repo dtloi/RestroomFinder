@@ -43,6 +43,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -295,7 +299,29 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMarkerClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
+        displayUserRestrooms();
     }
+
+    private void displayUserRestrooms() {
+        FirebaseDatabase.getInstance().getReference("Locations")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String restroomName = snapshot.getKey();
+                            Double lat = (Double) snapshot.child("Latitude").getValue(); // only works with decimals
+                            Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
+                            LatLng location = new LatLng(lat, lng);
+                            mMap.addMarker(new MarkerOptions().position(location).title(restroomName));
+
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+    }
+
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
     @Override
     public boolean onMarkerClick(Marker marker) {
