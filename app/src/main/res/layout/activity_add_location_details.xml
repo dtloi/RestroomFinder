@@ -28,13 +28,25 @@
         android:id="@+id/addlocMap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="@string/addLoc" />
+        android:onClick="addLocMap"
+        android:text="@string/open_map" />
 
-    <Button
-        android:id="@+id/getLocationBtn"
+    <CheckBox
+        android:id="@+id/unisexBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="@string/open_map" />
+        android:text="Unisex" />
+
+    <CheckBox
+        android:id="@+id/handicapBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Handicap" />
+
+    <CheckBox
+        android:id="@+id/vendingmachinBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Vending Machine" />
+
 </LinearLayout>
