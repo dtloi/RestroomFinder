@@ -62,6 +62,7 @@ import java.util.List;
 
 
 public class MapsActivity extends FragmentActivity implements
+        GoogleMap.OnMapClickListener,
         GoogleMap.OnMarkerClickListener,
         GoogleMap.InfoWindowAdapter,
         OnMapReadyCallback,
@@ -96,6 +97,11 @@ public class MapsActivity extends FragmentActivity implements
     static String API_Key = "AIzaSyAzwUcfSl7n2LkvecKKrw1cLnNmITbV97Y";
     String inputLocation;
 
+    //BOTTOM SHEET VIEWS
+    LinearLayout bottomSheet;
+    BottomSheetBehavior bottomSheetBehavior;
+    //BOTTOM SHEET VIEWS
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,6 +131,10 @@ public class MapsActivity extends FragmentActivity implements
         // ASK USER TO ENABLE GPS
         enableGPS();
         // ASK USER TO ENABLE GPS
+
+        bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
     }
 
@@ -228,7 +238,7 @@ public class MapsActivity extends FragmentActivity implements
         checkGPS();
     }
     //Current location button on map
-
+    //------------------------------------------------------MAP STUFF------------------------------------------------------------------
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.i(TAG, "in onMapReady");
@@ -246,16 +256,23 @@ public class MapsActivity extends FragmentActivity implements
         } catch (Resources.NotFoundException e) {
             Log.e(TAG, "Can't find style. Error: ", e);
         }
-
         geoLocate();
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnMapClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
         displayUserRestrooms();
-    }
 
+    }
+    @Override
+    public void onMapClick(LatLng latLng) {
+        //Toast.makeText(this, "Map Clicked", Toast.LENGTH_LONG).show();
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+    }
+    //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
+    //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
     private void displayUserRestrooms() {
         FirebaseDatabase.getInstance().getReference("Locations")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -275,16 +292,18 @@ public class MapsActivity extends FragmentActivity implements
                     }
                 });
     }
-
-    //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
     @Override
     public boolean onMarkerClick(Marker marker) {
         String mark_title = marker.getTitle();
-        if(mark_title.equals("Restroom")){
+        /*if(mark_title.equals("Restroom")){
             Toast.makeText(this, "This is a restroom", Toast.LENGTH_LONG).show();
             marker.showInfoWindow();
+
             return true;
-        }
+        }*/
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        TextView btmTitle = findViewById(R.id.btm_title);
+        btmTitle.setText(mark_title);
         return false;
     }
 
@@ -361,7 +380,6 @@ public class MapsActivity extends FragmentActivity implements
                     LOCATION_PERMISSION_REQUEST_CODE);
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -427,9 +445,9 @@ public class MapsActivity extends FragmentActivity implements
             enableGPS();
         }
     }
-
     //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
+
 
 
 }
