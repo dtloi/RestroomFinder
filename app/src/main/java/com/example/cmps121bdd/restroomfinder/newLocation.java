@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -24,6 +26,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -42,6 +45,7 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
 
     Double lat = null;
     Double lng = null;
+    String TAG = "newLocationTAG";
 
     private boolean mLocationPermissionGranted;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -76,9 +80,20 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference myRef = database.getReference("Locations");
         mMap = googleMap;
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
@@ -86,7 +101,6 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
                 mMap.addMarker(new MarkerOptions().position(point));
                 lat = point.latitude;
                 lng = point.longitude;
-
             }
         });
     }
@@ -102,9 +116,6 @@ public class newLocation extends FragmentActivity implements OnMapReadyCallback 
         }
 
     }
-
-
-
 
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
     private void getLocationPermission() {

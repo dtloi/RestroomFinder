@@ -35,6 +35,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Add Location" />
+        <Button
+            android:id="@+id/bottomlayout"
+            android:layout_below="@id/openMap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="bottom layout test" />
 
 
     </RelativeLayout>

@@ -13,4 +13,6 @@
     <string name="restroom_name">Restroom Name</string>
     <string name="open_map">Open Map</string>
     <string name="addLoc">Add LOcation</string>
+    <string name="bottom_sheet_peek">bottom sheet peek</string>
+    <string name="bottom_sheet_content">bottom sheet content</string>
 </resources>
