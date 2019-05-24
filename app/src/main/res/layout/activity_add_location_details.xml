@@ -28,13 +28,7 @@
         android:id="@+id/addlocMap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
+        android:onClick="addLocMap"
         android:text="@string/addLoc" />
 
-    <Button
-        android:id="@+id/getLocationBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="@string/open_map" />
 </LinearLayout>
