@@ -19,15 +19,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EditText inputLocation = findViewById(R.id.inputLocation);
         Button lookupLocation = findViewById(R.id.lookupLocation);
         Button openMap = findViewById(R.id.openMap);
-        Button addLocation = findViewById(R.id.addLocation);
+        Button addLocation = findViewById(R.id.addLocation);;
 
         String inputLocation_text = inputLocation.getText().toString();
         lookupLocation.setOnClickListener(this);
         openMap.setOnClickListener(this);
         addLocation.setOnClickListener(this);
-
     }
-
 
     @Override
     public void onClick(View v) {

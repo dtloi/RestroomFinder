@@ -6,22 +6,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -53,15 +54,16 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 
 public class MapsActivity extends FragmentActivity implements
+        GoogleMap.OnMapClickListener,
         GoogleMap.OnMarkerClickListener,
         GoogleMap.InfoWindowAdapter,
         OnMapReadyCallback,
@@ -69,11 +71,10 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     private static final boolean TODO = false;
     //TAG for Logs
     String TAG = "MAPACTIVITY";
-
 
     private static GoogleMap mMap;
     private Location mLastKnownLocation;
@@ -97,6 +98,12 @@ public class MapsActivity extends FragmentActivity implements
     static String API_Key = "AIzaSyAzwUcfSl7n2LkvecKKrw1cLnNmITbV97Y";
     String inputLocation;
 
+    //BOTTOM SHEET VIEWS
+    LinearLayout bottomSheet;
+    BottomSheetBehavior bottomSheetBehavior;
+    TextView btmTitle;
+    //BOTTOM SHEET VIEWS
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,6 +119,7 @@ public class MapsActivity extends FragmentActivity implements
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
         Intent i = getIntent();
         if (i == null) {
             inputLocation = "ucsc";
@@ -125,6 +133,12 @@ public class MapsActivity extends FragmentActivity implements
         // ASK USER TO ENABLE GPS
         enableGPS();
         // ASK USER TO ENABLE GPS
+
+        bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        btmTitle = findViewById(R.id.btm_title);
+        btmTitle.setOnClickListener(this);
 
     }
 
@@ -182,57 +196,6 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
-    //Check if GPS is enabled, if not, enables
-    public void enableGPS() {
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest);
-        Task<LocationSettingsResponse> result =
-                LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
-        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-            @Override
-            public void onComplete(Task<LocationSettingsResponse> task) {
-                try {
-                    LocationSettingsResponse response = task.getResult(ApiException.class);
-                    // All location settings are satisfied. The client can initialize location
-                    // requests here.
-                } catch (ApiException exception) {
-                    switch (exception.getStatusCode()) {
-                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                            // Location settings are not satisfied. But could be fixed by showing the
-                            // user a dialog.
-                            try {
-                                // Cast to a resolvable exception.
-                                ResolvableApiException resolvable = (ResolvableApiException) exception;
-                                // Show the dialog by calling startResolutionForResult(),
-                                // and check the result in onActivityResult().
-                                resolvable.startResolutionForResult(
-                                        MapsActivity.this,
-                                        REQUEST_CHECK_SETTINGS);
-                            } catch (IntentSender.SendIntentException e) {
-                                // Ignore the error.
-                            } catch (ClassCastException e) {
-                                // Ignore, should be an impossible error.
-                            }
-                            break;
-                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                            // Location settings are not satisfied. However, we have no way to fix the
-                            // settings so we won't show the dialog.
-                            break;
-                    }
-                }
-            }
-        });
-    }
-    public void checkGPS() {
-        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            enableGPS();
-        }
-    }
-    //Check if GPS is enabled, if not, enables
-
     //Current location button on map
     @Override
     public boolean onMyLocationButtonClick() {
@@ -279,7 +242,7 @@ public class MapsActivity extends FragmentActivity implements
         checkGPS();
     }
     //Current location button on map
-
+    //------------------------------------------------------MAP STUFF------------------------------------------------------------------
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.i(TAG, "in onMapReady");
@@ -301,11 +264,19 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnMapClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
         displayUserRestrooms();
-    }
 
+    }
+    @Override
+    public void onMapClick(LatLng latLng) {
+        //Toast.makeText(this, "Map Clicked", Toast.LENGTH_LONG).show();
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+    }
+    //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
+    //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
     private void displayUserRestrooms() {
         FirebaseDatabase.getInstance().getReference("Locations")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -325,15 +296,17 @@ public class MapsActivity extends FragmentActivity implements
                     }
                 });
     }
-
-    //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
     @Override
     public boolean onMarkerClick(Marker marker) {
         String mark_title = marker.getTitle();
-        if(mark_title.equals("Restroom")){
+        /*if(mark_title.equals("Restroom")){
             Toast.makeText(this, "This is a restroom", Toast.LENGTH_LONG).show();
             marker.showInfoWindow();
-        }
+
+            return true;
+        }*/
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        btmTitle.setText(mark_title);
         return false;
     }
 
@@ -347,6 +320,17 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public View getInfoContents(Marker marker) {
         return null;
+    }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btm_title:
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                Toast.makeText(this, "Bottom layout title clicked",Toast.LENGTH_LONG).show();
+
+
+        }
+
     }
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
 
@@ -410,7 +394,6 @@ public class MapsActivity extends FragmentActivity implements
                     LOCATION_PERMISSION_REQUEST_CODE);
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -427,8 +410,58 @@ public class MapsActivity extends FragmentActivity implements
             mPermissionDenied = true;
         }
     }
-
+    //Check if GPS is enabled, if not, enables
+    public void enableGPS() {
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        Task<LocationSettingsResponse> result =
+                LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
+        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+            @Override
+            public void onComplete(Task<LocationSettingsResponse> task) {
+                try {
+                    LocationSettingsResponse response = task.getResult(ApiException.class);
+                    // All location settings are satisfied. The client can initialize location
+                    // requests here.
+                } catch (ApiException exception) {
+                    switch (exception.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied. But could be fixed by showing the
+                            // user a dialog.
+                            try {
+                                // Cast to a resolvable exception.
+                                ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                resolvable.startResolutionForResult(
+                                        MapsActivity.this,
+                                        REQUEST_CHECK_SETTINGS);
+                            } catch (IntentSender.SendIntentException e) {
+                                // Ignore the error.
+                            } catch (ClassCastException e) {
+                                // Ignore, should be an impossible error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied. However, we have no way to fix the
+                            // settings so we won't show the dialog.
+                            break;
+                    }
+                }
+            }
+        });
+    }
+    public void checkGPS() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            enableGPS();
+        }
+    }
+    //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
+
 
 
 }
