@@ -54,6 +54,7 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -70,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     private static final boolean TODO = false;
     //TAG for Logs
     String TAG = "MAPACTIVITY";
@@ -100,6 +101,7 @@ public class MapsActivity extends FragmentActivity implements
     //BOTTOM SHEET VIEWS
     LinearLayout bottomSheet;
     BottomSheetBehavior bottomSheetBehavior;
+    TextView btmTitle;
     //BOTTOM SHEET VIEWS
 
     @Override
@@ -135,6 +137,8 @@ public class MapsActivity extends FragmentActivity implements
         bottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        btmTitle = findViewById(R.id.btm_title);
+        btmTitle.setOnClickListener(this);
 
     }
 
@@ -302,7 +306,6 @@ public class MapsActivity extends FragmentActivity implements
             return true;
         }*/
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        TextView btmTitle = findViewById(R.id.btm_title);
         btmTitle.setText(mark_title);
         return false;
     }
@@ -317,6 +320,17 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public View getInfoContents(Marker marker) {
         return null;
+    }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btm_title:
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                Toast.makeText(this, "Bottom layout title clicked",Toast.LENGTH_LONG).show();
+
+
+        }
+
     }
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
 
