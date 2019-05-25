@@ -349,7 +349,6 @@ public class MapsActivity extends FragmentActivity implements
 
     }
 
-
     /**
      * Saves the state of the map when the activity is paused.
      */
