@@ -2,6 +2,8 @@ package com.example.cmps121bdd.restroomfinder;
 
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -15,12 +17,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +41,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -48,13 +55,13 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -63,6 +70,8 @@ import java.util.List;
 
 
 public class MapsActivity extends FragmentActivity implements
+        GoogleMap.OnMapLongClickListener,
+        GoogleMap.OnCameraMoveListener,
         GoogleMap.OnMapClickListener,
         GoogleMap.OnMarkerClickListener,
         GoogleMap.InfoWindowAdapter,
@@ -75,7 +84,7 @@ public class MapsActivity extends FragmentActivity implements
     private static final boolean TODO = false;
     //TAG for Logs
     String TAG = "MAPACTIVITY";
-
+    Marker prevAddedMarker = null;
     private static GoogleMap mMap;
     private Location mLastKnownLocation;
     private boolean mPermissionDenied = false;
@@ -99,9 +108,18 @@ public class MapsActivity extends FragmentActivity implements
     String inputLocation;
 
     //BOTTOM SHEET VIEWS
-    LinearLayout bottomSheet;
-    BottomSheetBehavior bottomSheetBehavior;
-    TextView btmTitle;
+    LinearLayout markerDet;
+    BottomSheetBehavior markerDetBehavior;
+    TextView mrkTitle;
+    TextView mrkDet;
+    FloatingActionButton nav;
+
+    LinearLayout addLocation;
+    BottomSheetBehavior addLocationBehavior;
+    EditText addLocTitle;
+    Button addLoc;
+    Double lat, lng;
+    CheckBox unisex, handicap, vendingMachine;
     //BOTTOM SHEET VIEWS
 
     @Override
@@ -134,13 +152,44 @@ public class MapsActivity extends FragmentActivity implements
         enableGPS();
         // ASK USER TO ENABLE GPS
 
-        bottomSheet = findViewById(R.id.bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        btmTitle = findViewById(R.id.btm_title);
-        btmTitle.setOnClickListener(this);
+        markerDet = findViewById(R.id.marker_det);
+        markerDetBehavior = BottomSheetBehavior.from(markerDet);
+        markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        mrkTitle = findViewById(R.id.btm_title);
+        mrkTitle.setOnClickListener(this);
+        mrkDet = findViewById(R.id.btm_detail);
+        mrkDet.setOnClickListener(this);
+        nav = findViewById(R.id.navigation);
+
+
+        addLocation = findViewById(R.id.add_location);
+        addLocationBehavior = BottomSheetBehavior.from(addLocation);
+        addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        addLocTitle = findViewById(R.id.newMrk_title);
+        addLocTitle.setOnClickListener(this);
+        addLoc = findViewById(R.id.add);
+        addLoc.setOnClickListener(this);
+        unisex = findViewById(R.id.unisexBtn);
+        handicap = findViewById(R.id.handicapBtn);
+        vendingMachine = findViewById(R.id.vendingmachinBtn);
+
 
     }
+    @Override
+    public void onBackPressed(){
+        if(markerDetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            markerDetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }else if(addLocationBehavior.getState()== BottomSheetBehavior.STATE_EXPANDED){
+            addLocationBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }else if(addLocationBehavior.getState()== BottomSheetBehavior.STATE_COLLAPSED){
+            addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }else if(markerDetBehavior.getState()== BottomSheetBehavior.STATE_COLLAPSED){
+            markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }else{
+            finish();
+        }
+    }
+
 
     public void performSearch(Address a) {
         StringBuilder b = new StringBuilder();
@@ -199,7 +248,6 @@ public class MapsActivity extends FragmentActivity implements
     //Current location button on map
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -219,7 +267,6 @@ public class MapsActivity extends FragmentActivity implements
                 }
             }
         });
-
         checkGPS();
         return false;
     }
@@ -238,7 +285,6 @@ public class MapsActivity extends FragmentActivity implements
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
         checkGPS();
     }
     //Current location button on map
@@ -265,6 +311,8 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(this);
+        mMap.setOnCameraMoveListener(this);
+        mMap.setOnMapLongClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
         displayUserRestrooms();
@@ -272,8 +320,68 @@ public class MapsActivity extends FragmentActivity implements
     }
     @Override
     public void onMapClick(LatLng latLng) {
+        if(prevAddedMarker!=null){
+            prevAddedMarker.remove();
+            addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
         //Toast.makeText(this, "Map Clicked", Toast.LENGTH_LONG).show();
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+    }
+    @Override
+    public void onCameraMove() {
+        /*if(markerDetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            markerDetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }*/
+    }
+    @Override
+    public void onMapLongClick(LatLng point) {
+        if(prevAddedMarker!=null){
+            prevAddedMarker.remove();
+        }
+        prevAddedMarker = mMap.addMarker(new MarkerOptions().position(point));
+        lat = point.latitude;
+        lng = point.longitude;
+        CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(point,16);
+        mMap.animateCamera(location_up);
+        markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        addLocTitle.setText("");
+        Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
+    }
+
+    public void addLocationDetails(){
+        addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
+        String inputLocation = addLocTitle.getText().toString();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference myRef = database.getReference("Locations");
+        if (inputLocation.equals("")) {
+            Toast.makeText(this, "Please input a name", Toast.LENGTH_SHORT).show();
+        } else {
+            myRef.child(inputLocation).child("Latitude").setValue(lat);
+            myRef.child(inputLocation).child("Longitude").setValue(lng);
+            if(unisex.isChecked()){
+                myRef.child(inputLocation).child("Unisex").setValue(true);
+            }
+            else{
+                myRef.child(inputLocation).child("Unisex").setValue(false);
+            }
+            if(handicap.isChecked()){
+                myRef.child(inputLocation).child("Handicap").setValue(true);
+            }
+            else{
+                myRef.child(inputLocation).child("Handicap").setValue(false);
+            }
+            if(vendingMachine.isChecked()){
+                myRef.child(inputLocation).child("Vending Machine").setValue(true);
+            }
+            else{
+                myRef.child(inputLocation).child("Vending Machine").setValue(false);
+            }
+            Toast.makeText(this, "Location Added!", Toast.LENGTH_LONG).show();
+
+            prevAddedMarker=null;
+        }
     }
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
@@ -298,25 +406,35 @@ public class MapsActivity extends FragmentActivity implements
     }
     @Override
     public boolean onMarkerClick(Marker marker) {
-        String mark_title = marker.getTitle();
-        /*if(mark_title.equals("Restroom")){
-            Toast.makeText(this, "This is a restroom", Toast.LENGTH_LONG).show();
-            marker.showInfoWindow();
-
-            return true;
-        }*/
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        btmTitle.setText(mark_title);
+        if(marker.equals(prevAddedMarker)){
+            Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
+            markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }else{
+            String mark_title = marker.getTitle();
+            //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
+            addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            mrkTitle.setText(mark_title);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+        }
         return false;
     }
-
+    public void add(View view){
+        addLocationDetails();
+    }
     @Override
     public View getInfoWindow(Marker marker) {
         //View MarkerView = findViewById(R.id.markerView);
         //return MarkerView;
         return null;
     }
-
+    public void navigate(View view) {
+        Toast.makeText(this, "navigation button clciked", Toast.LENGTH_SHORT).show();
+    }
+    public boolean location(View view) {
+        return onMyLocationButtonClick();
+    }
     @Override
     public View getInfoContents(Marker marker) {
         return null;
@@ -324,31 +442,31 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            /*case R.id.newMrk_title:
+                Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
+                markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);*/
             case R.id.btm_title:
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                Toast.makeText(this, "Bottom layout title clicked",Toast.LENGTH_LONG).show();
-
-
+                Toast.makeText(this, "title clicked", Toast.LENGTH_SHORT).show();
+                addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            case R.id.btm_detail:
+                //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
         }
-
     }
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
-
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
     }
-
     @Override
     public void onConnectionSuspended(int i) {
 
     }
-
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
     /**
      * Saves the state of the map when the activity is paused.
      */
@@ -360,7 +478,6 @@ public class MapsActivity extends FragmentActivity implements
             super.onSaveInstanceState(outState);
         }
     }
-
     /**
      * Enables the My Location layer if the fine location permission has been granted.
      */
@@ -375,7 +492,6 @@ public class MapsActivity extends FragmentActivity implements
             mMap.setMyLocationEnabled(true);
         }
     }
-
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
     private void getLocationPermission() {
         /*
@@ -458,6 +574,8 @@ public class MapsActivity extends FragmentActivity implements
             enableGPS();
         }
     }
+
+
     //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
