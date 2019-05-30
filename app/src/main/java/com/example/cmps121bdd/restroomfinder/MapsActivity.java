@@ -27,6 +27,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +47,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -77,8 +79,6 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.InfoWindowAdapter,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
-        GoogleMap.OnMyLocationButtonClickListener,
-        GoogleMap.OnMyLocationClickListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     private static final boolean TODO = false;
@@ -105,7 +105,8 @@ public class MapsActivity extends FragmentActivity implements
     private boolean mLocationPermissionGranted;
     private HttpURLConnection conn = null;
     static String API_Key = "AIzaSyAzwUcfSl7n2LkvecKKrw1cLnNmITbV97Y";
-    String inputLocation;
+    private String inputLocation;
+    GPSTracker gps;
 
     //BOTTOM SHEET VIEWS
     LinearLayout markerDet;
@@ -118,7 +119,7 @@ public class MapsActivity extends FragmentActivity implements
     BottomSheetBehavior addLocationBehavior;
     EditText addLocTitle;
     Button addLoc;
-    Double lat, lng;
+    Double lat, lng, curlat, curlng;
     CheckBox unisex, handicap, vendingMachine;
     //BOTTOM SHEET VIEWS
 
@@ -172,6 +173,10 @@ public class MapsActivity extends FragmentActivity implements
         unisex = findViewById(R.id.unisexBtn);
         handicap = findViewById(R.id.handicapBtn);
         vendingMachine = findViewById(R.id.vendingmachinBtn);
+
+        gps = new GPSTracker(this);
+        curlat = null;
+        curlng = null;
 
 
     }
@@ -245,32 +250,6 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
-    //Current location button on map
-    @Override
-    public boolean onMyLocationButtonClick() {
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return TODO;
-        }
-        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    locateUser(location);
-                }
-            }
-        });
-        checkGPS();
-        return false;
-    }
-
     public void locateUser(Location location) {
         StringBuilder b = new StringBuilder();
         b.append("https://maps.googleapis.com/maps/api/place/textsearch/json?");
@@ -283,10 +262,6 @@ public class MapsActivity extends FragmentActivity implements
         imageDownloader.execute(b.toString());
     }
 
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        checkGPS();
-    }
     //Current location button on map
     //------------------------------------------------------MAP STUFF------------------------------------------------------------------
     @Override
@@ -306,9 +281,11 @@ public class MapsActivity extends FragmentActivity implements
         } catch (Resources.NotFoundException e) {
             Log.e(TAG, "Can't find style. Error: ", e);
         }
+
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
         geoLocate();
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(this);
         mMap.setOnCameraMoveListener(this);
@@ -433,8 +410,37 @@ public class MapsActivity extends FragmentActivity implements
         Toast.makeText(this, "navigation button clciked", Toast.LENGTH_SHORT).show();
     }
     public boolean location(View view) {
-        return onMyLocationButtonClick();
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return TODO;
+        }
+        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    locateUser(location);
+                }
+            }
+        });
+        checkGPS();
+        gps = new GPSTracker(this);
+        curlat= gps.getLatitude(); // returns latitude
+        curlng= gps.getLongitude();
+        LatLng curloc = new LatLng(curlat, curlng);
+        if((curlat != 0.0 && curlng != 0.0)){
+            CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom( curloc,16);
+            mMap.animateCamera(location_up);
+        }
+        return false;
     }
+
     @Override
     public View getInfoContents(Marker marker) {
         return null;
@@ -498,7 +504,7 @@ public class MapsActivity extends FragmentActivity implements
          * Request location permission, so that we can get the location of the
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
-         */
+        */
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -572,10 +578,9 @@ public class MapsActivity extends FragmentActivity implements
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             enableGPS();
+
         }
     }
-
-
     //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
