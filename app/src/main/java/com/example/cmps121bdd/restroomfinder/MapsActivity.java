@@ -24,7 +24,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -36,6 +36,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -54,6 +55,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -67,7 +75,10 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+
 
 
 public class MapsActivity extends FragmentActivity implements
@@ -107,7 +118,6 @@ public class MapsActivity extends FragmentActivity implements
     private HttpURLConnection conn = null;
     static String API_Key = "AIzaSyAzwUcfSl7n2LkvecKKrw1cLnNmITbV97Y";
     String inputLocation;
-    static EditText newLocation;
 
     //BOTTOM SHEET VIEWS
     LinearLayout markerDet;
@@ -175,7 +185,39 @@ public class MapsActivity extends FragmentActivity implements
         handicap = findViewById(R.id.handicapBtn);
         vendingMachine = findViewById(R.id.vendingmachinBtn);
 
-        newLocation = findViewById(R.id.newLocation);
+
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+
+        Places.initialize(getApplicationContext(), API_Key);
+
+        //PlacesClient placesClient = Places.createClient(this);
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                String name = place.getName().toString();
+                LatLng location = place.getLatLng();
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getLatLng());
+                geoLocate(name);
+                displayUserRestrooms();
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
+                mMap.addMarker(new MarkerOptions().position(location).title(name)); //add marker
+
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.e(TAG, "onError: " + status);
+            }
+        });
 
 
     }
@@ -458,13 +500,11 @@ public class MapsActivity extends FragmentActivity implements
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
 
-            case R.id.searchBtn:
-                geoLocate(newLocation.getText().toString());
-                displayUserRestrooms();
-                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0); // hides keyboard
         }
     }
+
+
+
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
     @Override
     public void onConnected(@Nullable Bundle bundle) {
