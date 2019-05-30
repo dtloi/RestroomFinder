@@ -73,22 +73,13 @@
     <!-- include bottom sheet -->
     <include layout="@layout/add_location" />
 
-    <EditText
-        android:id="@+id/newLocation"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Search location" />
 
-    <Button
-        android:id="@+id/searchBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="Search"
-        android:layout_marginLeft="250dp"
+    <fragment
+        android:id="@+id/autocomplete_fragment"
+        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content" />
 
-        app:layout_anchor="@+id/map" />
 
 
 </android.support.design.widget.CoordinatorLayout>
