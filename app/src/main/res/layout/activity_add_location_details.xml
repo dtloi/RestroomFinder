@@ -49,6 +49,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="addLocMap"
-        android:text="@string/open_map" />
+        android:text="@string/confirm" />
 
 </LinearLayout>
