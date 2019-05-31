@@ -2,8 +2,6 @@ package com.example.cmps121bdd.restroomfinder;
 
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -17,7 +15,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -27,7 +24,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +32,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -55,6 +52,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -68,7 +69,10 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+
 
 
 public class MapsActivity extends FragmentActivity implements
@@ -79,6 +83,8 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.InfoWindowAdapter,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
+        GoogleMap.OnMyLocationButtonClickListener,
+        GoogleMap.OnMyLocationClickListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     private static final boolean TODO = false;
@@ -105,23 +111,22 @@ public class MapsActivity extends FragmentActivity implements
     private boolean mLocationPermissionGranted;
     private HttpURLConnection conn = null;
     static String API_Key = "AIzaSyAzwUcfSl7n2LkvecKKrw1cLnNmITbV97Y";
-    private String inputLocation;
-    GPSTracker gps;
+    String inputLocation;
 
     //BOTTOM SHEET VIEWS
-    LinearLayout markerDet;
-    BottomSheetBehavior markerDetBehavior;
+    LinearLayout markerDet, addLocation;
+    BottomSheetBehavior markerDetBehavior, addLocationBehavior;
+    EditText addLocTitle;
     TextView mrkTitle;
     TextView mrkDet;
     FloatingActionButton nav;
-
-    LinearLayout addLocation;
-    BottomSheetBehavior addLocationBehavior;
-    EditText addLocTitle;
     Button addLoc;
     Double lat, lng, curlat, curlng;
     CheckBox unisex, handicap, vendingMachine;
     //BOTTOM SHEET VIEWS
+
+    GPSTracker gps;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,9 +179,41 @@ public class MapsActivity extends FragmentActivity implements
         handicap = findViewById(R.id.handicapBtn);
         vendingMachine = findViewById(R.id.vendingmachinBtn);
 
+
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+
+        Places.initialize(getApplicationContext(), API_Key);
+
+        //PlacesClient placesClient = Places.createClient(this);
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                String name = place.getName().toString();
+                LatLng location = place.getLatLng();
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getLatLng());
+                geoLocate(name);
+                displayUserRestrooms();
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
+                mMap.addMarker(new MarkerOptions().position(location).title(name)); //add marker
+
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.e(TAG, "onError: " + status);
+            }
+        });
+
         gps = new GPSTracker(this);
-        curlat = null;
-        curlng = null;
 
 
     }
@@ -229,13 +266,13 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
-    public void geoLocate() {
+    public void geoLocate(String userLocation) {
         Geocoder geocoder = new Geocoder(MapsActivity.this);
-        Log.d(MapsActivity.class.getSimpleName(), "inputLocation = " + inputLocation);
+        Log.d(MapsActivity.class.getSimpleName(), "inputLocation = " + userLocation);
         List<Address> list = new ArrayList<>(); // list of results when user types
-        if (inputLocation != null) {
+        if (userLocation != null) {
             try {
-                list = geocoder.getFromLocationName(inputLocation, 1); // only get first result
+                list = geocoder.getFromLocationName(userLocation, 1); // only get first result
 
             } catch (IOException e) {
                 Log.e(TAG, "geoLocate: IOException: " + e.getMessage());
@@ -244,10 +281,36 @@ public class MapsActivity extends FragmentActivity implements
                 Address address = list.get(0);
                 LatLng location = new LatLng(address.getLatitude(), address.getLongitude()); // get lat and lng of input location
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
-                mMap.addMarker(new MarkerOptions().position(location).title(inputLocation.toUpperCase())); //add marker
+                mMap.addMarker(new MarkerOptions().position(location).title(userLocation.toUpperCase())); //add marker
                 performSearch(address);
             }
         }
+    }
+
+    //Current location button on map
+    @Override
+    public boolean onMyLocationButtonClick() {
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return TODO;
+        }
+        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    locateUser(location);
+                }
+            }
+        });
+        checkGPS();
+        return false;
     }
 
     public void locateUser(Location location) {
@@ -262,6 +325,10 @@ public class MapsActivity extends FragmentActivity implements
         imageDownloader.execute(b.toString());
     }
 
+    @Override
+    public void onMyLocationClick(@NonNull Location location) {
+        checkGPS();
+    }
     //Current location button on map
     //------------------------------------------------------MAP STUFF------------------------------------------------------------------
     @Override
@@ -281,11 +348,12 @@ public class MapsActivity extends FragmentActivity implements
         } catch (Resources.NotFoundException e) {
             Log.e(TAG, "Can't find style. Error: ", e);
         }
-
-        mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-        geoLocate();
+        UiSettings settings = mMap.getUiSettings();
+        settings.setCompassEnabled(false);
+        settings.setMyLocationButtonEnabled(false);
+        geoLocate(inputLocation);
+        mMap.setOnMyLocationButtonClickListener(this);
+        mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(this);
         mMap.setOnCameraMoveListener(this);
@@ -440,7 +508,6 @@ public class MapsActivity extends FragmentActivity implements
         }
         return false;
     }
-
     @Override
     public View getInfoContents(Marker marker) {
         return null;
@@ -458,8 +525,13 @@ public class MapsActivity extends FragmentActivity implements
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
+                break;
+
         }
     }
+
+
+
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -504,7 +576,7 @@ public class MapsActivity extends FragmentActivity implements
          * Request location permission, so that we can get the location of the
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
-        */
+         */
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -578,9 +650,10 @@ public class MapsActivity extends FragmentActivity implements
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             enableGPS();
-
         }
     }
+
+
     //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
