@@ -106,7 +106,7 @@ public class MapsActivity extends FragmentActivity implements
     // A default location (UCSC) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(36.9881, 122.0582);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 12;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mLocationPermissionGranted;
     private HttpURLConnection conn = null;
@@ -503,7 +503,7 @@ public class MapsActivity extends FragmentActivity implements
         curlng= gps.getLongitude();
         LatLng curloc = new LatLng(curlat, curlng);
         if((curlat != 0.0 && curlng != 0.0)){
-            CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom( curloc,16);
+            CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom( curloc,DEFAULT_ZOOM);
             mMap.animateCamera(location_up);
         }
         return false;
