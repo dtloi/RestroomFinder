@@ -4,6 +4,7 @@
     <string name="locationHint">Enter your current location</string>
     <string name="search">Search</string>
     <string name="openMap">Open Map</string>
+    <string name="confirm">Confirm</string>
 
     <!--    Permissions    -->
     <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
