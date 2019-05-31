@@ -12,6 +12,8 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         tools:context=".MapsActivity" />
 
     <!-- include bottom sheet -->
@@ -70,6 +72,13 @@
 
     <!-- include bottom sheet -->
     <include layout="@layout/add_location" />
+
+
+    <fragment
+        android:id="@+id/autocomplete_fragment"
+        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content" />
 
 
 
