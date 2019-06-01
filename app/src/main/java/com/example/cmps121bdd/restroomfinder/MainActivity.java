@@ -48,8 +48,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent2);                                                    //starting MapActivity with input
                 break;
             case R.id.addLocation:
-                Intent intent3 = new Intent (this, newLocation.class);    //Creating intent to pass to MapActivity
-                startActivity(intent3);                                                    //starting MapActivity with input
                 break;
         }
     }
