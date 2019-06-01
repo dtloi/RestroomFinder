@@ -171,7 +171,7 @@ public class MapsActivity extends FragmentActivity implements
         addLocTitle = findViewById(R.id.newMrk_title);
         addLocTitle.setOnClickListener(this);
         addLoc = findViewById(R.id.add);
-        addLoc.setOnClickListener(this);
+        //addLoc.setOnClickListener(this);
         unisex = findViewById(R.id.unisexBtn);
         handicap = findViewById(R.id.handicapBtn);
         vendingMachine = findViewById(R.id.vendingmachinBtn);
@@ -467,6 +467,7 @@ public class MapsActivity extends FragmentActivity implements
         return false;
     }
     public void add(View view){
+        Toast.makeText(this, "add clicked", Toast.LENGTH_SHORT).show();
         addLocationDetails();
     }
     @Override
@@ -527,7 +528,6 @@ public class MapsActivity extends FragmentActivity implements
             case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
-
         }
     }
 
