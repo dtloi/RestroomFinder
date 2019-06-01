@@ -72,9 +72,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
-
-
 public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMapLongClickListener,
         GoogleMap.OnCameraMoveListener,
@@ -386,7 +383,7 @@ public class MapsActivity extends FragmentActivity implements
         prevAddedMarker = mMap.addMarker(new MarkerOptions().position(point));
         lat = point.latitude;
         lng = point.longitude;
-        CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(point,16);
+        CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(point,13);
         mMap.animateCamera(location_up);
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -451,6 +448,8 @@ public class MapsActivity extends FragmentActivity implements
     }
     @Override
     public boolean onMarkerClick(Marker marker) {
+        Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
+
         if(marker.equals(prevAddedMarker)){
             Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -461,7 +460,9 @@ public class MapsActivity extends FragmentActivity implements
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             mrkTitle.setText(mark_title);
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+            //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+            CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(marker.getPosition(),DEFAULT_ZOOM);
+            mMap.animateCamera(location_up);
         }
         return false;
     }
@@ -503,7 +504,7 @@ public class MapsActivity extends FragmentActivity implements
         curlng= gps.getLongitude();
         LatLng curloc = new LatLng(curlat, curlng);
         if((curlat != 0.0 && curlng != 0.0)){
-            CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom( curloc,DEFAULT_ZOOM);
+            CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(curloc,DEFAULT_ZOOM);
             mMap.animateCamera(location_up);
         }
         return false;
