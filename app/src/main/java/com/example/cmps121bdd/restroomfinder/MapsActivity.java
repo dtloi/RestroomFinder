@@ -11,6 +11,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -89,6 +90,7 @@ public class MapsActivity extends FragmentActivity implements
     //TAG for Logs
     String TAG = "MAPACTIVITY";
     Marker prevAddedMarker = null;
+    Marker curMarker = null;
     private static GoogleMap mMap;
     private Location mLastKnownLocation;
     private boolean mPermissionDenied = false;
@@ -400,6 +402,7 @@ public class MapsActivity extends FragmentActivity implements
         addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
         String inputLocation = addLocTitle.getText().toString();
+        prevAddedMarker.setTitle(inputLocation);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference("Locations");
         if (inputLocation.equals("")) {
@@ -455,7 +458,7 @@ public class MapsActivity extends FragmentActivity implements
     public boolean onMarkerClick(Marker marker) {
         Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
 
-        String inputLocation = marker.getTitle();
+        //String inputLocation = marker.getTitle();
         //inputLocation = "hi";
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference mRef = database.getReference("Locations");
@@ -464,21 +467,20 @@ public class MapsActivity extends FragmentActivity implements
 
 
         if(marker.equals(prevAddedMarker)){
+            //Log.d("MapsActivity", "here");
             Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
-
-
-
             addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }else{
+            //Log.d("MapsActivity", "here2");
+            curMarker = marker;
             String mark_title = marker.getTitle();
+            //Log.d("MapsActivity", mark_title);
             //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-            // If you add a marker, and click on it to see its parameters, the app will crash------------------------------
 
-            mRef.child(inputLocation).addListenerForSingleValueEvent(new ValueEventListener() {
+            mRef.child(mark_title).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
@@ -511,7 +513,6 @@ public class MapsActivity extends FragmentActivity implements
 
             });
 
-            // If you add a marker, and click on it to see its parameters, the app will crash--------------------------
 
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             mrkTitle.setText(mark_title);
@@ -522,6 +523,7 @@ public class MapsActivity extends FragmentActivity implements
         return false;
     }
     public void add(View view){
+        Toast.makeText(this, "add clicked", Toast.LENGTH_SHORT).show();
         addLocationDetails();
     }
     @Override
@@ -531,6 +533,14 @@ public class MapsActivity extends FragmentActivity implements
         return null;
     }
     public void navigate(View view) {
+        if(markerDetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN){
+            LatLng curLoc = curMarker.getPosition();
+            String navLoc = "google.navigation:q="+ curLoc.latitude +","+curLoc.longitude;
+            Uri gmIntentUri = Uri.parse(navLoc);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+        }
         Toast.makeText(this, "navigation button clciked", Toast.LENGTH_SHORT).show();
     }
     public boolean location(View view) {
@@ -579,10 +589,9 @@ public class MapsActivity extends FragmentActivity implements
                 Toast.makeText(this, "title clicked", Toast.LENGTH_SHORT).show();
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            //case R.id.btm_detail:
+                //case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
-
         }
     }
 
