@@ -19,13 +19,32 @@
         android:gravity="center"
         android:textColor="@android:color/white" />
 
-    <TextView
-        android:id="@+id/btm_detail"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="@string/bottom_sheet_content"
-        android:textColor="@android:color/white" />
+        android:layout_height="match_parent">
+        <CheckBox
+            android:id="@+id/unisexBtn2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Unisex" />
+
+        <CheckBox
+            android:id="@+id/handicapBtn2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Handicap" />
+
+        <CheckBox
+            android:id="@+id/vendingmachinBtn2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vending Machine" />
+
+
+
+
+    </LinearLayout>
 
 
 </LinearLayout>
