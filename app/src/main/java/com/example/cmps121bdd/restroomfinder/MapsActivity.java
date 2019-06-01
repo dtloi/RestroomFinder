@@ -11,6 +11,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -89,6 +90,7 @@ public class MapsActivity extends FragmentActivity implements
     //TAG for Logs
     String TAG = "MAPACTIVITY";
     Marker prevAddedMarker = null;
+    Marker curMarker = null;
     private static GoogleMap mMap;
     private Location mLastKnownLocation;
     private boolean mPermissionDenied = false;
@@ -466,12 +468,9 @@ public class MapsActivity extends FragmentActivity implements
         if(marker.equals(prevAddedMarker)){
             Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
-
-
-
             addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }else{
+            curMarker = marker;
             String mark_title = marker.getTitle();
             //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -522,6 +521,7 @@ public class MapsActivity extends FragmentActivity implements
         return false;
     }
     public void add(View view){
+        Toast.makeText(this, "add clicked", Toast.LENGTH_SHORT).show();
         addLocationDetails();
     }
     @Override
@@ -531,6 +531,14 @@ public class MapsActivity extends FragmentActivity implements
         return null;
     }
     public void navigate(View view) {
+        if(markerDetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN){
+            LatLng curLoc = curMarker.getPosition();
+            String navLoc = "google.navigation:q="+ curLoc.latitude +","+curLoc.longitude;
+            Uri gmIntentUri = Uri.parse(navLoc);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+        }
         Toast.makeText(this, "navigation button clciked", Toast.LENGTH_SHORT).show();
     }
     public boolean location(View view) {
@@ -582,7 +590,6 @@ public class MapsActivity extends FragmentActivity implements
             //case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
-
         }
     }
 
