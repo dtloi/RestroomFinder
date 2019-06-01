@@ -56,6 +56,7 @@ import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -120,6 +121,7 @@ public class MapsActivity extends FragmentActivity implements
     Button addLoc;
     Double lat, lng, curlat, curlng;
     CheckBox unisex, handicap, vendingMachine;
+    CheckBox unisex2, handicap2, vendingMachine2;
     //BOTTOM SHEET VIEWS
 
     GPSTracker gps;
@@ -160,9 +162,12 @@ public class MapsActivity extends FragmentActivity implements
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         mrkTitle = findViewById(R.id.btm_title);
         mrkTitle.setOnClickListener(this);
-        mrkDet = findViewById(R.id.btm_detail);
-        mrkDet.setOnClickListener(this);
+        //mrkDet = findViewById(R.id.btm_detail);
+        //mrkDet.setOnClickListener(this);
         nav = findViewById(R.id.navigation);
+        unisex2 = findViewById(R.id.unisexBtn2);
+        handicap2 = findViewById(R.id.handicapBtn2);
+        vendingMachine2 = findViewById(R.id.vendingmachinBtn2);
 
 
         addLocation = findViewById(R.id.add_location);
@@ -450,14 +455,64 @@ public class MapsActivity extends FragmentActivity implements
     public boolean onMarkerClick(Marker marker) {
         Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
 
+        String inputLocation = marker.getTitle();
+        //inputLocation = "hi";
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference mRef = database.getReference("Locations");
+        //DatabaseReference myRef = mRef.child(inputLocation).child("Handicap");
+
+
+
         if(marker.equals(prevAddedMarker)){
             Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+
+
+
             addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }else{
             String mark_title = marker.getTitle();
             //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+            // If you add a marker, and click on it to see its parameters, the app will crash------------------------------
+
+            mRef.child(inputLocation).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
+                    if (value == true){
+                        handicap2.setChecked(true);
+                    }
+                    else{
+                        handicap2.setChecked(false);
+                    }
+                    value = (boolean) dataSnapshot.child("Unisex").getValue();
+                    if (value == true){
+                        unisex2.setChecked(true);
+                    }
+                    else{
+                        unisex2.setChecked(false);
+                    }
+                    value = (boolean) dataSnapshot.child("Vending Machine").getValue();
+                    if (value == true){
+                        vendingMachine2.setChecked(true);
+                    }
+                    else{
+                        vendingMachine2.setChecked(false);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+
+            });
+
+            // If you add a marker, and click on it to see its parameters, the app will crash--------------------------
+
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             mrkTitle.setText(mark_title);
             //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
@@ -525,7 +580,7 @@ public class MapsActivity extends FragmentActivity implements
                 Toast.makeText(this, "title clicked", Toast.LENGTH_SHORT).show();
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            case R.id.btm_detail:
+            //case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
         }
