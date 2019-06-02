@@ -2,7 +2,6 @@ package com.example.cmps121bdd.restroomfinder;
 
 
 import android.Manifest;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -30,7 +29,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.firebase.client.Firebase;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -74,10 +72,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-
-import static android.widget.Toast.LENGTH_SHORT;
 
 public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMapLongClickListener,
@@ -92,11 +87,11 @@ public class MapsActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     private static final boolean TODO = false;
-    private static String TAG = "MapsActivity";
-    //TAG for Logs
     private static Marker prevAddedMarker = null;
     private static Marker curMarker = null;
     private static Marker closestMarker = null;
+    //TAG for Logs
+    String TAG = "MAPACTIVITY";
     private static GoogleMap mMap;
     private Location mLastKnownLocation;
     private boolean mPermissionDenied = false;
@@ -244,6 +239,7 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
+
     public void performSearch(Address a) {
         StringBuilder b = new StringBuilder();
         b.append("https://maps.googleapis.com/maps/api/place/textsearch/json?");
@@ -261,26 +257,17 @@ public class MapsActivity extends FragmentActivity implements
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(s);
             JSONArray predsJsonArray = jsonObj.getJSONArray("results");
+
             // Extract the lat and lng and add markers there
             for (int i = 0; i < predsJsonArray.length(); i++) {
-
                 JSONObject jsonObject = (JSONObject) predsJsonArray.get(i);
                 JSONObject jsonObject2 = (JSONObject) jsonObject.get("geometry");
                 JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
 
                 LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
-                MarkerOptions marker = new MarkerOptions().position(location).title("Restroom");
-                Marker newMarker = mMap.addMarker(marker);
-                if(i==0){
-                    Log.i(TAG, i+ " <-closest marker");
+                Marker newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+                if(i == 0){
                     closestMarker = newMarker;
-                }
-                if(curlat != null && curlng !=null){
-                    Location curloc = gps.getLocation();
-                    Location markloc = new Location(LocationManager.GPS_PROVIDER);
-                    markloc.setLatitude(location.latitude);
-                    markloc.setLongitude(location.longitude);
-                    Log.i(TAG, i+ " "+curloc.distanceTo(markloc));
                 }
 
             }
@@ -315,13 +302,6 @@ public class MapsActivity extends FragmentActivity implements
     public boolean onMyLocationButtonClick() {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return TODO;
         }
         mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -383,7 +363,7 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMapLongClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
-        //displayUserRestrooms();
+        displayUserRestrooms();
 
     }
     @Override
@@ -414,19 +394,18 @@ public class MapsActivity extends FragmentActivity implements
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         addLocTitle.setText("");
-        Toast.makeText(this, "prevAddedMarker clicked", LENGTH_SHORT).show();
+        Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
     }
 
     public void addLocationDetails(){
         addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        Toast.makeText(this, "Adding location details", LENGTH_SHORT).show();
+        Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
         String inputLocation = addLocTitle.getText().toString();
+        prevAddedMarker.setTitle(inputLocation);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference("Locations");
-        myRef.child(inputLocation).child("user_added").setValue(true);              //user added location check
-        myRef.child(inputLocation).child("details_added").setValue(true);            //details check
         if (inputLocation.equals("")) {
-            Toast.makeText(this, "Please input a name", LENGTH_SHORT).show();
+            Toast.makeText(this, "Please input a name", Toast.LENGTH_SHORT).show();
         } else {
             myRef.child(inputLocation).child("Latitude").setValue(lat);
             myRef.child(inputLocation).child("Longitude").setValue(lng);
@@ -456,7 +435,6 @@ public class MapsActivity extends FragmentActivity implements
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
     private void displayUserRestrooms() {
-
         FirebaseDatabase.getInstance().getReference("Locations")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -477,32 +455,30 @@ public class MapsActivity extends FragmentActivity implements
     }
     @Override
     public boolean onMarkerClick(Marker marker) {
-
-        Toast.makeText(this, "existing marker clicked", LENGTH_SHORT).show();
+        Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
 
         String inputLocation = marker.getTitle();
         //inputLocation = "hi";
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference mRef = database.getReference("Locations");
         //DatabaseReference myRef = mRef.child(inputLocation).child("Handicap");
-
         if(marker.equals(prevAddedMarker)){
-            Toast.makeText(this, "prevAddedMarker clicked", LENGTH_SHORT).show();
+            //Log.d("MapsActivity", "here");
+            Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }else{
+            //Log.d("MapsActivity", "here2");
             curMarker = marker;
             String mark_title = marker.getTitle();
+            //Log.d("MapsActivity", mark_title);
             //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
-            // If you add a marker, and click on it to see its parameters, the app will crash------------------------------
-            mRef.child(inputLocation).addListenerForSingleValueEvent(new ValueEventListener() {
+            mRef.child(mark_title).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    boolean value;
                     if(dataSnapshot.hasChild("Handicap")){
-                        value = (boolean) dataSnapshot.child("Handicap").getValue();
+                        boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
                         if (value == true){
                             handicap2.setChecked(true);
                         }
@@ -524,11 +500,7 @@ public class MapsActivity extends FragmentActivity implements
                             vendingMachine2.setChecked(false);
                         }
                     }else{
-
                     }
-
-
-
 
                 }
 
@@ -540,8 +512,6 @@ public class MapsActivity extends FragmentActivity implements
             });
 
 
-            // If you add a marker, and click on it to see its parameters, the app will crash--------------------------
-
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             mrkTitle.setText(mark_title);
             //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
@@ -551,7 +521,6 @@ public class MapsActivity extends FragmentActivity implements
         return false;
     }
     public void add(View view){
-        Toast.makeText(this, "add clicked", LENGTH_SHORT).show();
         addLocationDetails();
     }
     @Override
@@ -579,13 +548,6 @@ public class MapsActivity extends FragmentActivity implements
     public boolean location(View view) {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return TODO;
         }
         mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -619,14 +581,18 @@ public class MapsActivity extends FragmentActivity implements
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);*/
             case R.id.btm_title:
-                Toast.makeText(this, "title clicked", LENGTH_SHORT).show();
+                Toast.makeText(this, "title clicked", Toast.LENGTH_SHORT).show();
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             //case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
+
         }
     }
+
+
+
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -747,6 +713,9 @@ public class MapsActivity extends FragmentActivity implements
             enableGPS();
         }
     }
+
+
+    //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------
 
 
