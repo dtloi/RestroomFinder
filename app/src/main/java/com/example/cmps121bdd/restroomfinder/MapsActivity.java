@@ -87,10 +87,11 @@ public class MapsActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     private static final boolean TODO = false;
+    private static Marker prevAddedMarker = null;
+    private static Marker curMarker = null;
+    private static Marker closestMarker = null;
     //TAG for Logs
     String TAG = "MAPACTIVITY";
-    Marker prevAddedMarker = null;
-    Marker curMarker = null;
     private static GoogleMap mMap;
     private Location mLastKnownLocation;
     private boolean mPermissionDenied = false;
@@ -121,12 +122,14 @@ public class MapsActivity extends FragmentActivity implements
     TextView mrkDet;
     FloatingActionButton nav;
     Button addLoc;
-    Double lat, lng, curlat, curlng;
+    Double lat;
+    Double lng;
+    private static Double curlat, curlng;
     CheckBox unisex, handicap, vendingMachine;
     CheckBox unisex2, handicap2, vendingMachine2;
     //BOTTOM SHEET VIEWS
 
-    GPSTracker gps;
+    private static GPSTracker gps;
 
 
     @Override
@@ -262,7 +265,10 @@ public class MapsActivity extends FragmentActivity implements
                 JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
 
                 LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
-                mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+                Marker newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+                if(i == 0){
+                    closestMarker = newMarker;
+                }
 
             }
         } catch (JSONException e) {
@@ -296,13 +302,6 @@ public class MapsActivity extends FragmentActivity implements
     public boolean onMyLocationButtonClick() {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return TODO;
         }
         mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -402,6 +401,7 @@ public class MapsActivity extends FragmentActivity implements
         addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
         String inputLocation = addLocTitle.getText().toString();
+        prevAddedMarker.setTitle(inputLocation);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference("Locations");
         if (inputLocation.equals("")) {
@@ -462,45 +462,46 @@ public class MapsActivity extends FragmentActivity implements
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference mRef = database.getReference("Locations");
         //DatabaseReference myRef = mRef.child(inputLocation).child("Handicap");
-
-
-
         if(marker.equals(prevAddedMarker)){
+            //Log.d("MapsActivity", "here");
             Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }else{
+            //Log.d("MapsActivity", "here2");
             curMarker = marker;
             String mark_title = marker.getTitle();
+            //Log.d("MapsActivity", mark_title);
             //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
-            // If you add a marker, and click on it to see its parameters, the app will crash------------------------------
-
-            mRef.child(inputLocation).addListenerForSingleValueEvent(new ValueEventListener() {
+            mRef.child(mark_title).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
-                    if (value == true){
-                        handicap2.setChecked(true);
+                    if(dataSnapshot.hasChild("Handicap")){
+                        boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
+                        if (value == true){
+                            handicap2.setChecked(true);
+                        }
+                        else{
+                            handicap2.setChecked(false);
+                        }
+                        value = (boolean) dataSnapshot.child("Unisex").getValue();
+                        if (value == true){
+                            unisex2.setChecked(true);
+                        }
+                        else{
+                            unisex2.setChecked(false);
+                        }
+                        value = (boolean) dataSnapshot.child("Vending Machine").getValue();
+                        if (value == true){
+                            vendingMachine2.setChecked(true);
+                        }
+                        else{
+                            vendingMachine2.setChecked(false);
+                        }
+                    }else{
                     }
-                    else{
-                        handicap2.setChecked(false);
-                    }
-                    value = (boolean) dataSnapshot.child("Unisex").getValue();
-                    if (value == true){
-                        unisex2.setChecked(true);
-                    }
-                    else{
-                        unisex2.setChecked(false);
-                    }
-                    value = (boolean) dataSnapshot.child("Vending Machine").getValue();
-                    if (value == true){
-                        vendingMachine2.setChecked(true);
-                    }
-                    else{
-                        vendingMachine2.setChecked(false);
-                    }
+
                 }
 
                 @Override
@@ -510,7 +511,6 @@ public class MapsActivity extends FragmentActivity implements
 
             });
 
-            // If you add a marker, and click on it to see its parameters, the app will crash--------------------------
 
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             mrkTitle.setText(mark_title);
@@ -521,7 +521,6 @@ public class MapsActivity extends FragmentActivity implements
         return false;
     }
     public void add(View view){
-        Toast.makeText(this, "add clicked", Toast.LENGTH_SHORT).show();
         addLocationDetails();
     }
     @Override
@@ -531,26 +530,24 @@ public class MapsActivity extends FragmentActivity implements
         return null;
     }
     public void navigate(View view) {
-        if(markerDetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN){
-            LatLng curLoc = curMarker.getPosition();
+        LatLng curLoc;
+        if(markerDetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN){       //if there is a marker clicked go there
+            curLoc = curMarker.getPosition();
             String navLoc = "google.navigation:q="+ curLoc.latitude +","+curLoc.longitude;
             Uri gmIntentUri = Uri.parse(navLoc);
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
             startActivity(mapIntent);
+        }else if(closestMarker != null){              //if there is no marker clicked then navigate to the closest restroom
+            onMarkerClick(closestMarker);
+        }else{
+            Toast.makeText(this, "Click on the current location button to navigate to the closest restroom", Toast.LENGTH_LONG).show();
         }
-        Toast.makeText(this, "navigation button clciked", Toast.LENGTH_SHORT).show();
+
     }
     public boolean location(View view) {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return TODO;
         }
         mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -590,6 +587,7 @@ public class MapsActivity extends FragmentActivity implements
             //case R.id.btm_detail:
                 //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
+
         }
     }
 
