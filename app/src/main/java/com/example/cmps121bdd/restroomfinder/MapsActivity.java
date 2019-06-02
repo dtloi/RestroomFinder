@@ -16,7 +16,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
@@ -74,6 +76,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static android.widget.Toast.LENGTH_LONG;
+
 public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMapLongClickListener,
         GoogleMap.OnCameraMoveListener,
@@ -85,8 +89,9 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, ValueEventListener {
     private static final boolean TODO = false;
+    private static CoordinatorLayout myCoorLayout;
     private static Marker prevAddedMarker = null;
     private static Marker curMarker = null;
     private static Marker closestMarker = null;
@@ -161,7 +166,7 @@ public class MapsActivity extends FragmentActivity implements
         // ASK USER TO ENABLE GPS
         enableGPS();
         // ASK USER TO ENABLE GPS
-
+        myCoorLayout = findViewById(R.id.myCoorLayout);
         markerDet = findViewById(R.id.marker_det);
         markerDetBehavior = BottomSheetBehavior.from(markerDet);
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -365,6 +370,7 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setInfoWindowAdapter(new markerView(this));
         displayUserRestrooms();
 
+
     }
     @Override
     public void onMapClick(LatLng latLng) {
@@ -401,8 +407,8 @@ public class MapsActivity extends FragmentActivity implements
         addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
         String inputLocation = addLocTitle.getText().toString();
-        prevAddedMarker.setTitle(inputLocation);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
+        prevAddedMarker.setTitle(inputLocation);
         final DatabaseReference myRef = database.getReference("Locations");
         if (inputLocation.equals("")) {
             Toast.makeText(this, "Please input a name", Toast.LENGTH_SHORT).show();
@@ -427,10 +433,45 @@ public class MapsActivity extends FragmentActivity implements
             else{
                 myRef.child(inputLocation).child("Vending Machine").setValue(false);
             }
-            Toast.makeText(this, "Location Added!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Location Added!", LENGTH_LONG).show();
 
             prevAddedMarker=null;
         }
+    }
+
+    public void addLocationDetailsMap(){
+        inputLocation = addLocTitle.getText().toString();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference myRef = database.getReference("Locations");
+        myRef.child(inputLocation).child("Latitude").setValue(lat);
+        myRef.child(inputLocation).child("Longitude").setValue(lng);
+        if(unisex.isChecked()){
+            myRef.child(inputLocation).child("Unisex").setValue(true);
+        }
+        else{
+            myRef.child(inputLocation).child("Unisex").setValue(false);
+        }
+        if(handicap.isChecked()){
+            myRef.child(inputLocation).child("Handicap").setValue(true);
+        }
+        else{
+            myRef.child(inputLocation).child("Handicap").setValue(false);
+        }
+        if(vendingMachine.isChecked()){
+            myRef.child(inputLocation).child("Vending Machine").setValue(true);
+        }
+        else{
+            myRef.child(inputLocation).child("Vending Machine").setValue(false);
+        }
+        Toast.makeText(this, "Location Added!", LENGTH_LONG).show();
+
+        prevAddedMarker=null;
+        addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        /*if (inputLocation.equals("")) {
+            Toast.makeText(this, "Please input a name", Toast.LENGTH_SHORT).show();
+        } else {
+
+        }*/
     }
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
@@ -474,44 +515,7 @@ public class MapsActivity extends FragmentActivity implements
             //Log.d("MapsActivity", mark_title);
             //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            mRef.child(mark_title).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.hasChild("Handicap")){
-                        boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
-                        if (value == true){
-                            handicap2.setChecked(true);
-                        }
-                        else{
-                            handicap2.setChecked(false);
-                        }
-                        value = (boolean) dataSnapshot.child("Unisex").getValue();
-                        if (value == true){
-                            unisex2.setChecked(true);
-                        }
-                        else{
-                            unisex2.setChecked(false);
-                        }
-                        value = (boolean) dataSnapshot.child("Vending Machine").getValue();
-                        if (value == true){
-                            vendingMachine2.setChecked(true);
-                        }
-                        else{
-                            vendingMachine2.setChecked(false);
-                        }
-                    }else{
-                    }
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-
-            });
-
-
+            mRef.child(mark_title).addListenerForSingleValueEvent(this);
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             mrkTitle.setText(mark_title);
             //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
@@ -520,11 +524,64 @@ public class MapsActivity extends FragmentActivity implements
         }
         return false;
     }
+    @Override
+    public void onDataChange(@NonNull final DataSnapshot dataSnapshot) {
+        if(dataSnapshot.hasChild("Handicap")){
+            Toast.makeText(this, "this marker has details added", Toast.LENGTH_SHORT).show();
+            boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
+            if (value == true){
+                handicap2.setChecked(true);
+            }
+            else{
+                handicap2.setChecked(false);
+            }
+            value = (boolean) dataSnapshot.child("Unisex").getValue();
+            if (value == true){
+                unisex2.setChecked(true);
+            }
+            else{
+                unisex2.setChecked(false);
+            }
+            value = (boolean) dataSnapshot.child("Vending Machine").getValue();
+            if (value == true){
+                vendingMachine2.setChecked(true);
+            }
+            else{
+                vendingMachine2.setChecked(false);
+            }
+        }else{
+            Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_INDEFINITE).setAction("ADD", new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LatLng addNewDets = curMarker.getPosition();
+                    inputLocation = curMarker.getTitle();
+                    lat = addNewDets.latitude;
+                    lng = addNewDets.longitude;
+                    markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                    addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    addLocTitle.setText(inputLocation);
+                }
+            }).show();
+
+        }
+
+    }
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+    }
     public void add(View view){
-        addLocationDetails();
+        if(prevAddedMarker!=null){
+            addLocationDetails();
+        }else{
+            addLocationDetailsMap();
+        }
+
     }
     @Override
     public View getInfoWindow(Marker marker) {
+
         //View MarkerView = findViewById(R.id.markerView);
         //return MarkerView;
         return null;
@@ -541,7 +598,7 @@ public class MapsActivity extends FragmentActivity implements
         }else if(closestMarker != null){              //if there is no marker clicked then navigate to the closest restroom
             onMarkerClick(closestMarker);
         }else{
-            Toast.makeText(this, "Click on the current location button to navigate to the closest restroom", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Click on the current location button to navigate to the closest restroom", LENGTH_LONG).show();
         }
 
     }
@@ -584,8 +641,6 @@ public class MapsActivity extends FragmentActivity implements
                 Toast.makeText(this, "title clicked", Toast.LENGTH_SHORT).show();
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            //case R.id.btm_detail:
-                //Toast.makeText(this, "newMrk_title clicked", Toast.LENGTH_SHORT).show();
                 break;
 
         }
@@ -713,6 +768,7 @@ public class MapsActivity extends FragmentActivity implements
             enableGPS();
         }
     }
+
 
 
     //Check if GPS is enabled, if not, enables
