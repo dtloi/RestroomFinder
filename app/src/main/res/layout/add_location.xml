@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/add_location"
     android:layout_width="match_parent"
-    android:layout_height="340dp"
+    android:layout_height="300dp"
     android:background="@android:color/darker_gray"
     android:orientation="vertical"
     app:behavior_hideable="true"
@@ -12,44 +12,76 @@
 
     <EditText
         android:id="@+id/newMrk_title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#323232"
+        android:gravity="center"
+        android:hint="Enter Restroom Name Here"
         android:imeOptions="actionDone"
         android:singleLine="true"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#8BFFFFFF"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/tagText"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@color/colorAccent"
-        android:gravity="center"
-        android:hint="Enter a name"
-        android:textColorHint="@android:color/darker_gray"
-        android:textColor="@android:color/white" />
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:text="Insert Restroom Details"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:textSize="18sp" />
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <CheckBox
             android:id="@+id/unisexBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Unisex" />
+            android:background="#F1F1F1"
+            android:text="Unisex/Gender Neutral" />
+
+        <CheckBox
+            android:id="@+id/paperTowelBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F1F1F1"
+            android:text="Paper Towels" />
+
+        <CheckBox
+            android:id="@+id/airDryerBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F1F1F1"
+            android:text="Air Dryer" />
 
         <CheckBox
             android:id="@+id/handicapBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Handicap" />
+            android:background="#F1F1F1"
+            android:text="Handicap Accessible" />
 
         <CheckBox
             android:id="@+id/vendingmachinBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Vending Machine" />
+            android:background="#F1F1F1"
+            android:text="Tampon Vending Machine" />
+
         <Button
             android:id="@+id/add"
-            android:onClick="add"
-            android:gravity="center"
-            android:text="Add Location"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="#D1D1D1"
+            android:gravity="center"
+            android:onClick="add"
+            android:text="Add Location" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
