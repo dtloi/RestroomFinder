@@ -103,6 +103,7 @@ public class MapsActivity extends FragmentActivity implements
     private static Marker prevAddedMarker = null;
     private static Marker curMarker = null;
     private static Marker closestMarker = null;
+    private static Marker aMarker = null;
     Boolean doesNameExist = false;
     //TAG for Logs
     String TAG = "MAPACTIVITY";
@@ -272,14 +273,36 @@ public class MapsActivity extends FragmentActivity implements
 
             // Extract the lat and lng and add markers there
             for (int i = 0; i < predsJsonArray.length(); i++) {
+
                 JSONObject jsonObject = (JSONObject) predsJsonArray.get(i);
                 JSONObject jsonObject2 = (JSONObject) jsonObject.get("geometry");
                 JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
+                final LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                final DatabaseReference myRef = database.getReference("Locations");
+                aMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+                myRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Double lat = (Double) snapshot.child("Latitude").getValue(); // only works with decimals
+                            Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
+                            if(lat!=null && lng!=null){
+                                if(lat.equals(location.latitude) && lng.equals(location.longitude)){
+                                    aMarker.remove();
+                                }
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
-                Marker newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
-                if(i == 0){
-                    closestMarker = newMarker;
+                    }
+                });
+                //Marker newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+
+                if(i == 0 && aMarker != null){
+                    closestMarker = aMarker;
                 }
 
             }
@@ -295,7 +318,6 @@ public class MapsActivity extends FragmentActivity implements
         if (userLocation != null) {
             try {
                 list = geocoder.getFromLocationName(userLocation, 1); // only get first result
-
             } catch (IOException e) {
                 Log.e(TAG, "geoLocate: IOException: " + e.getMessage());
             }
@@ -367,8 +389,8 @@ public class MapsActivity extends FragmentActivity implements
         settings.setCompassEnabled(false);
         settings.setMyLocationButtonEnabled(false);
         settings.setMapToolbarEnabled(false);
-        displayUserRestrooms();
         geoLocate("ucsc");
+        displayUserRestrooms();
         CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
         mMap.animateCamera(location_up);
         mMap.setOnMyLocationButtonClickListener(this);
@@ -534,7 +556,6 @@ public class MapsActivity extends FragmentActivity implements
                             Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
                             LatLng location = new LatLng(lat, lng);
                             mMap.addMarker(new MarkerOptions().position(location).title(restroomName));
-
                         }
                     }
                     @Override
