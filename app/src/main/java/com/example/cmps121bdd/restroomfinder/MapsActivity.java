@@ -7,12 +7,16 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
@@ -24,10 +28,12 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +54,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -111,8 +119,9 @@ public class MapsActivity extends FragmentActivity implements
 
     // A default location (UCSC) and default zoom to use when location permission is
     // not granted.
-    private final LatLng mDefaultLocation = new LatLng(36.9881, 122.0582);
+    private final LatLng mDefaultLocation = new LatLng(36.9881, -122.0582);
     private static final int DEFAULT_ZOOM = 12;
+    private static final int INITIAL_ZOOM = 18;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mLocationPermissionGranted;
     private HttpURLConnection conn = null;
@@ -130,7 +139,7 @@ public class MapsActivity extends FragmentActivity implements
     Double lat;
     Double lng;
     private static Double curlat, curlng;
-    CheckBox unisex, handicap, vendingMachine;
+    Switch unisex, handicap, vendingMachine;
     CheckBox unisex2, handicap2, vendingMachine2;
     //BOTTOM SHEET VIEWS
 
@@ -296,7 +305,7 @@ public class MapsActivity extends FragmentActivity implements
                 Address address = list.get(0);
                 LatLng location = new LatLng(address.getLatitude(), address.getLongitude()); // get lat and lng of input location
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
-                mMap.addMarker(new MarkerOptions().position(location).title(userLocation.toUpperCase())); //add marker
+                //mMap.addMarker(new MarkerOptions().position(location).title(userLocation.toUpperCase())); //add marker
                 performSearch(address);
             }
         }
@@ -360,7 +369,11 @@ public class MapsActivity extends FragmentActivity implements
         settings.setCompassEnabled(false);
         settings.setMyLocationButtonEnabled(false);
         settings.setMapToolbarEnabled(false);
-        geoLocate(inputLocation);
+        geoLocate("ucsc");
+        CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
+        mMap.animateCamera(location_up);
+        LatLng defLatlng = new LatLng(mDefaultLocation.latitude, mDefaultLocation.longitude);
+
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
