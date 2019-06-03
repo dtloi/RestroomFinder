@@ -7,12 +7,16 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
@@ -24,10 +28,12 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +54,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -111,8 +119,9 @@ public class MapsActivity extends FragmentActivity implements
 
     // A default location (UCSC) and default zoom to use when location permission is
     // not granted.
-    private final LatLng mDefaultLocation = new LatLng(36.9881, 122.0582);
+    private final LatLng mDefaultLocation = new LatLng(36.9881, -122.0582);
     private static final int DEFAULT_ZOOM = 12;
+    private static final int INITIAL_ZOOM = 18;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mLocationPermissionGranted;
     private HttpURLConnection conn = null;
@@ -130,7 +139,7 @@ public class MapsActivity extends FragmentActivity implements
     Double lat;
     Double lng;
     private static Double curlat, curlng;
-    CheckBox unisex, handicap, vendingMachine;
+    Switch unisex, handicap, vendingMachine;
     CheckBox unisex2, handicap2, vendingMachine2;
     //BOTTOM SHEET VIEWS
 
@@ -296,7 +305,7 @@ public class MapsActivity extends FragmentActivity implements
                 Address address = list.get(0);
                 LatLng location = new LatLng(address.getLatitude(), address.getLongitude()); // get lat and lng of input location
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
-                mMap.addMarker(new MarkerOptions().position(location).title(userLocation.toUpperCase())); //add marker
+                //mMap.addMarker(new MarkerOptions().position(location).title(userLocation.toUpperCase())); //add marker
                 performSearch(address);
             }
         }
@@ -359,7 +368,12 @@ public class MapsActivity extends FragmentActivity implements
         UiSettings settings = mMap.getUiSettings();
         settings.setCompassEnabled(false);
         settings.setMyLocationButtonEnabled(false);
-        geoLocate(inputLocation);
+        settings.setMapToolbarEnabled(false);
+        geoLocate("ucsc");
+        CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
+        mMap.animateCamera(location_up);
+        LatLng defLatlng = new LatLng(mDefaultLocation.latitude, mDefaultLocation.longitude);
+
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(this);
@@ -467,11 +481,6 @@ public class MapsActivity extends FragmentActivity implements
 
         prevAddedMarker=null;
         addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        /*if (inputLocation.equals("")) {
-            Toast.makeText(this, "Please input a name", Toast.LENGTH_SHORT).show();
-        } else {
-
-        }*/
     }
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
@@ -496,10 +505,9 @@ public class MapsActivity extends FragmentActivity implements
     }
     @Override
     public boolean onMarkerClick(Marker marker) {
+        clearSheets();
         Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
-
         String inputLocation = marker.getTitle();
-        //inputLocation = "hi";
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference mRef = database.getReference("Locations");
         //DatabaseReference myRef = mRef.child(inputLocation).child("Handicap");
@@ -512,11 +520,9 @@ public class MapsActivity extends FragmentActivity implements
             //Log.d("MapsActivity", "here2");
             curMarker = marker;
             String mark_title = marker.getTitle();
-            //Log.d("MapsActivity", mark_title);
-            //Toast.makeText(this, "rand marker clicked", Toast.LENGTH_SHORT).show();
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            mRef.child(mark_title).addListenerForSingleValueEvent(this);
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            mRef.child(mark_title).addListenerForSingleValueEvent(this);
             mrkTitle.setText(mark_title);
             //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
             CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(marker.getPosition(),DEFAULT_ZOOM);
@@ -524,44 +530,75 @@ public class MapsActivity extends FragmentActivity implements
         }
         return false;
     }
+
+    public void clearSheets(){
+        /*unisex, handicap, vendingMachine;
+        EditText addLocTitle;
+        TextView mrkTitle;
+        CheckBox unisex2, handicap2, vendingMachine2;*/
+        addLocTitle.setText("");
+        mrkTitle.setText("");
+        unisex.setChecked(false);
+        unisex2.setChecked(false);
+        handicap.setChecked(false);
+        handicap2.setChecked(false);
+        vendingMachine.setChecked(false);
+        vendingMachine2.setChecked(false);
+
+    }
+
     @Override
     public void onDataChange(@NonNull final DataSnapshot dataSnapshot) {
+        final LatLng addNewDets = curMarker.getPosition();
+        curlng = addNewDets.longitude;
+        curlat = addNewDets.latitude;
         if(dataSnapshot.hasChild("Handicap")){
-            Toast.makeText(this, "this marker has details added", Toast.LENGTH_SHORT).show();
-            boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
-            if (value == true){
-                handicap2.setChecked(true);
-            }
-            else{
-                handicap2.setChecked(false);
-            }
-            value = (boolean) dataSnapshot.child("Unisex").getValue();
-            if (value == true){
-                unisex2.setChecked(true);
-            }
-            else{
-                unisex2.setChecked(false);
-            }
-            value = (boolean) dataSnapshot.child("Vending Machine").getValue();
-            if (value == true){
-                vendingMachine2.setChecked(true);
-            }
-            else{
-                vendingMachine2.setChecked(false);
+            Double markLat = (Double) dataSnapshot.child("Latitude").getValue();
+            Double markLng = (Double) dataSnapshot.child("Longitude").getValue();
+            Log.i(TAG, "markLat "+markLat);
+            Log.i(TAG, "markLng "+markLng);
+            Log.i(TAG, "curlat "+curlat);
+            Log.i(TAG, "curlng "+curlng);
+            Log.i(TAG, "markLng.equals(curlng)" +markLng.equals(curlng));
+            Log.i(TAG, "markLat.equals(curlat))" +markLat.equals(curlat));
+            if(markLng.equals(curlng) && markLat.equals(curlat)){
+                Log.i(TAG, "this marker has details added");
+                boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
+                if (value == true){
+                    handicap2.setChecked(true);
+                }
+                else{
+                    handicap2.setChecked(false);
+                }
+                value = (boolean) dataSnapshot.child("Unisex").getValue();
+                if (value == true){
+                    unisex2.setChecked(true);
+                }
+                else{
+                    unisex2.setChecked(false);
+                }
+                value = (boolean) dataSnapshot.child("Vending Machine").getValue();
+                if (value == true){
+                    vendingMachine2.setChecked(true);
+                }
+                else{
+                    vendingMachine2.setChecked(false);
+                }
+            }else{
+                Log.i(TAG, "this marker does exist, but has no details added");
+                Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        inputLocation = curMarker.getTitle();
+                        lat = addNewDets.latitude;
+                        lng = addNewDets.longitude;
+                        markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                        addLocTitle.setText(inputLocation);
+                    }
+                }).show();
             }
         }else{
-            Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_INDEFINITE).setAction("ADD", new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    LatLng addNewDets = curMarker.getPosition();
-                    inputLocation = curMarker.getTitle();
-                    lat = addNewDets.latitude;
-                    lng = addNewDets.longitude;
-                    markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                    addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                    addLocTitle.setText(inputLocation);
-                }
-            }).show();
 
         }
 
@@ -645,8 +682,6 @@ public class MapsActivity extends FragmentActivity implements
 
         }
     }
-
-
 
     //------------------------------------------------------MARKER STUFF-------------------------------------------------------------------
     @Override
