@@ -23,92 +23,93 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <EditText
-                android:background="@android:color/white"
-                android:textStyle="bold"
-                android:textAlignment="textStart"
-                android:paddingTop="3dp"
-                android:paddingLeft="@dimen/switchsideDimen"
-                android:paddingRight="@dimen/switchsideDimen"
-                android:paddingBottom="-2dp"
-                android:textCursorDrawable="@null"
                 android:id="@+id/newMrk_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@android:color/white"
                 android:gravity="center"
                 android:hint="@string/enter_restroom_name_here"
                 android:imeOptions="actionDone"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="3dp"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="-2dp"
                 android:singleLine="true"
+                android:textAlignment="textStart"
                 android:textColor="#000000"
                 android:textColorHint="@color/colorAccentTwo"
-                android:textSize="50sp"
+                android:textCursorDrawable="@null"
+                android:textSize="30sp"
+                android:textStyle="bold"
                 tools:ignore="RtlCompat" />
 
             <Switch
-                android:textSize="@dimen/switchTextSize"
-                android:paddingTop="@dimen/switchDimen"
-                android:paddingLeft="@dimen/switchsideDimen"
-                android:paddingRight="@dimen/switchsideDimen"
-                android:paddingBottom="@dimen/switchbottomDimen"
                 android:id="@+id/unisexBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="gender neutral" />
-
-            <Switch
-                android:textSize="@dimen/switchTextSize"
-                android:paddingTop="@dimen/switchDimen"
                 android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
                 android:paddingRight="@dimen/switchsideDimen"
                 android:paddingBottom="@dimen/switchbottomDimen"
+                android:text="Gender Neutral/Unisex"
+                android:textSize="@dimen/switchTextSize" />
+
+            <Switch
                 android:id="@+id/paperTowelBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="paper towels" />
-
-            <Switch
-                android:textSize="@dimen/switchTextSize"
-                android:paddingTop="@dimen/switchDimen"
                 android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
                 android:paddingRight="@dimen/switchsideDimen"
                 android:paddingBottom="@dimen/switchbottomDimen"
+                android:text="Paper Towels"
+                android:textSize="@dimen/switchTextSize" />
+
+            <Switch
                 android:id="@+id/airDryerBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="air dryer" />
-
-            <Switch
-                android:textSize="@dimen/switchTextSize"
-                android:paddingTop="@dimen/switchDimen"
                 android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
                 android:paddingRight="@dimen/switchsideDimen"
                 android:paddingBottom="@dimen/switchbottomDimen"
+                android:text="Air Dryer"
+                android:textSize="@dimen/switchTextSize" />
+
+            <Switch
                 android:id="@+id/handicapBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="handicap accessible" />
-
-            <Switch
-                android:textSize="@dimen/switchTextSize"
-                android:paddingTop="@dimen/switchDimen"
                 android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
                 android:paddingRight="@dimen/switchsideDimen"
                 android:paddingBottom="@dimen/switchbottomDimen"
+                android:text="Handicap Accessible"
+                android:textSize="@dimen/switchTextSize" />
+
+            <Switch
                 android:id="@+id/vendingmachinBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="tampon vending machine" />
-
-            <Switch
-                android:textSize="@dimen/switchTextSize"
-                android:paddingTop="@dimen/switchDimen"
                 android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
                 android:paddingRight="@dimen/switchsideDimen"
                 android:paddingBottom="@dimen/switchbottomDimen"
+                android:text="Tampon Vending Machine"
+                android:textSize="@dimen/switchTextSize" />
+
+            <Switch
                 android:id="@+id/changingTable"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="baby changing table" />
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
+                android:text="Baby Changing Station"
+                android:textSize="@dimen/switchTextSize" />
 
             <Button
                 android:layout_margin="@dimen/switchDimen"

@@ -1,50 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/marker_det"
     android:layout_width="match_parent"
-    android:layout_height="340dp"
-    android:background="@android:color/darker_gray"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent"
     android:orientation="vertical"
     app:behavior_hideable="true"
     app:behavior_peekHeight="80dp"
     app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
-    <TextView
-        android:id="@+id/btm_title"
-        android:hint="@string/restroom_name"
+    <android.support.v7.widget.CardView
+        android:background="@color/colorAccentOne"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@color/colorAccent"
-        android:gravity="center"
-        android:textColor="@android:color/white" />
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/switchDimen"
+        app:cardCornerRadius="7dp"
+        app:cardElevation="8dp">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <CheckBox
-            android:id="@+id/unisexBtn2"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Unisex" />
+            android:background="#FFFFFF"
+            android:orientation="vertical">
 
-        <CheckBox
-            android:id="@+id/handicapBtn2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Handicap" />
+            <TextView
+                android:id="@+id/btm_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:hint="@string/restroom_name"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="3dp"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="-2dp"
+                android:textAlignment="textStart"
+                android:textColor="#000000"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                tools:ignore="RtlCompat" />
 
-        <CheckBox
-            android:id="@+id/vendingmachinBtn2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Vending Machine" />
+            <TextView
+                android:id="@+id/unisexText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="Unisex/Gender Neutral"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/paperTowelsText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="Paper Towels"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/airDryerText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="Air Dryer"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/handicapText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="Handicap Accessible"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/vendingMachineText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="Tampon Vending Machine"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/changingTableText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="Baby Changing Station"
+                android:textColor="#000000"/>
 
 
-
-
-    </LinearLayout>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
 
 
 </LinearLayout>
