@@ -147,6 +147,8 @@ public class MapsActivity extends FragmentActivity implements
     //BOTTOM SHEET VIEWS
 
     private static GPSTracker gps;
+    
+    static ArrayList<Marker> LatLngList = new ArrayList<Marker>();
 
 
     @Override
@@ -282,6 +284,8 @@ public class MapsActivity extends FragmentActivity implements
     }
 
     public static void placeMarkers(String s) {
+        Marker newMarker;
+        boolean duplicate = false;
         try {
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(s);
@@ -294,13 +298,27 @@ public class MapsActivity extends FragmentActivity implements
                 JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
 
                 final LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
-                Marker newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
 
-                if(i == 0){
-                    closestMarker = newMarker;
+                for(int j = 0;j<LatLngList.size();j++){
+                    if(LatLngList.get(j).getPosition().equals(location)){
+                        Log.d("Mapsactivity", "duplicate");
+                        duplicate = true;
+                    }
+                }
+                if (duplicate == false){
+                    newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+                    if(i == 0){
+                        closestMarker = newMarker;
+                    }
+                }
+                else{
+                    duplicate = false;
                 }
 
+
             }
+
+
         } catch (JSONException e) {
             //Log.e(LOG_TAG, "Error processing JSON results", e);
         }
@@ -385,8 +403,10 @@ public class MapsActivity extends FragmentActivity implements
         settings.setCompassEnabled(false);
         settings.setMyLocationButtonEnabled(false);
         settings.setMapToolbarEnabled(false);
-        displayUserRestrooms();
         geoLocate("ucsc");
+
+
+        displayUserRestrooms();
         CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
         mMap.animateCamera(location_up);
         mMap.setOnMyLocationButtonClickListener(this);
@@ -510,7 +530,8 @@ public class MapsActivity extends FragmentActivity implements
                             Double lat = (Double) snapshot.child("Latitude").getValue(); // only works with decimals
                             Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
                             LatLng location = new LatLng(lat, lng);
-                            mMap.addMarker(new MarkerOptions().position(location).title(restroomName));
+                            LatLngList.add(mMap.addMarker(new MarkerOptions().position(location).title(restroomName)));
+
                         }
                     }
                     @Override
