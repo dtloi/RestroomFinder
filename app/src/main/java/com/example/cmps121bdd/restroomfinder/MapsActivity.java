@@ -139,8 +139,9 @@ public class MapsActivity extends FragmentActivity implements
     Double lat;
     Double lng;
     private static Double curlat, curlng;
-    Switch unisex, handicap, vendingMachine;
-    CheckBox unisex2, handicap2, vendingMachine2;
+    Switch unisex, papertowels, airdryer, handicap, vendingMachine, changingTable;
+    //CheckBox unisex2, handicap2, vendingMachine2;
+    TextView unisex2, papertowels2, airdryer2, handicap2, vendingMachine2, changingTable2;
     //BOTTOM SHEET VIEWS
 
     private static GPSTracker gps;
@@ -184,9 +185,17 @@ public class MapsActivity extends FragmentActivity implements
         //mrkDet = findViewById(R.id.btm_detail);
         //mrkDet.setOnClickListener(this);
         nav = findViewById(R.id.navigation);
+        /*
         unisex2 = findViewById(R.id.unisexBtn2);
         handicap2 = findViewById(R.id.handicapBtn2);
         vendingMachine2 = findViewById(R.id.vendingmachinBtn2);
+        */
+        unisex2 = findViewById(R.id.unisexText);
+        papertowels2 = findViewById(R.id.paperTowelsText);
+        airdryer2 = findViewById(R.id.airDryerText);
+        handicap2 = findViewById(R.id.handicapText);
+        vendingMachine2 = findViewById(R.id.vendingMachineText);
+        changingTable2 = findViewById(R.id.changingTableText);
 
 
         addLocation = findViewById(R.id.add_location);
@@ -197,8 +206,11 @@ public class MapsActivity extends FragmentActivity implements
         addLoc = findViewById(R.id.add);
         //addLoc.setOnClickListener(this);
         unisex = findViewById(R.id.unisexBtn);
+        papertowels = findViewById(R.id.paperTowelBtn);
+        airdryer = findViewById(R.id.airDryerBtn);
         handicap = findViewById(R.id.handicapBtn);
         vendingMachine = findViewById(R.id.vendingmachinBtn);
+        changingTable = findViewById(R.id.changingTable);
 
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -435,6 +447,18 @@ public class MapsActivity extends FragmentActivity implements
             else{
                 myRef.child(inputLocation).child("Unisex").setValue(false);
             }
+            if(papertowels.isChecked()){
+                myRef.child(inputLocation).child("Paper Towels").setValue(true);
+            }
+            else{
+                myRef.child(inputLocation).child("Paper Towels").setValue(false);
+            }
+            if(airdryer.isChecked()){
+                myRef.child(inputLocation).child("Air Dryer").setValue(true);
+            }
+            else{
+                myRef.child(inputLocation).child("Air Dryer").setValue(false);
+            }
             if(handicap.isChecked()){
                 myRef.child(inputLocation).child("Handicap").setValue(true);
             }
@@ -446,6 +470,12 @@ public class MapsActivity extends FragmentActivity implements
             }
             else{
                 myRef.child(inputLocation).child("Vending Machine").setValue(false);
+            }
+            if(changingTable.isChecked()){
+                myRef.child(inputLocation).child("Changing Table").setValue(true);
+            }
+            else{
+                myRef.child(inputLocation).child("Changing Table").setValue(false);
             }
             Toast.makeText(this, "Location Added!", LENGTH_LONG).show();
 
@@ -465,6 +495,18 @@ public class MapsActivity extends FragmentActivity implements
         else{
             myRef.child(inputLocation).child("Unisex").setValue(false);
         }
+        if(papertowels.isChecked()){
+            myRef.child(inputLocation).child("Paper Towels").setValue(true);
+        }
+        else{
+            myRef.child(inputLocation).child("Paper Towels").setValue(false);
+        }
+        if(airdryer.isChecked()){
+            myRef.child(inputLocation).child("Air Dryer").setValue(true);
+        }
+        else{
+            myRef.child(inputLocation).child("Air Dryer").setValue(false);
+        }
         if(handicap.isChecked()){
             myRef.child(inputLocation).child("Handicap").setValue(true);
         }
@@ -476,6 +518,12 @@ public class MapsActivity extends FragmentActivity implements
         }
         else{
             myRef.child(inputLocation).child("Vending Machine").setValue(false);
+        }
+        if(changingTable.isChecked()){
+            myRef.child(inputLocation).child("Changing Table").setValue(true);
+        }
+        else{
+            myRef.child(inputLocation).child("Changing Table").setValue(false);
         }
         Toast.makeText(this, "Location Added!", LENGTH_LONG).show();
 
@@ -539,11 +587,11 @@ public class MapsActivity extends FragmentActivity implements
         addLocTitle.setText("");
         mrkTitle.setText("");
         unisex.setChecked(false);
-        unisex2.setChecked(false);
+        //unisex2.setChecked(false);
         handicap.setChecked(false);
-        handicap2.setChecked(false);
+        //handicap2.setChecked(false);
         vendingMachine.setChecked(false);
-        vendingMachine2.setChecked(false);
+        //vendingMachine2.setChecked(false);
 
     }
 
@@ -563,26 +611,63 @@ public class MapsActivity extends FragmentActivity implements
             Log.i(TAG, "markLat.equals(curlat))" +markLat.equals(curlat));
             if(markLng.equals(curlng) && markLat.equals(curlat)){
                 Log.i(TAG, "this marker has details added");
+
                 boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
                 if (value == true){
-                    handicap2.setChecked(true);
+                    //handicap2.setChecked(true);
+                    handicap2.setVisibility(View.VISIBLE);
                 }
                 else{
-                    handicap2.setChecked(false);
+                    handicap2.setVisibility(View.INVISIBLE);
                 }
+                
                 value = (boolean) dataSnapshot.child("Unisex").getValue();
                 if (value == true){
-                    unisex2.setChecked(true);
+                    //unisex2.setChecked(true);
+                    unisex2.setVisibility(View.VISIBLE);
                 }
                 else{
-                    unisex2.setChecked(false);
+                    //unisex2.setChecked(false);
+                    unisex2.setVisibility(View.INVISIBLE);
                 }
+
+                value = (boolean) dataSnapshot.child("Air Dryer").getValue();
+                if (value == true){
+                    //unisex2.setChecked(true);
+                    airdryer2.setVisibility(View.VISIBLE);
+                }
+                else{
+                    //unisex2.setChecked(false);
+                    airdryer2.setVisibility(View.INVISIBLE);
+                }
+                value = (boolean) dataSnapshot.child("Paper Towels").getValue();
+                if (value == true){
+                    //unisex2.setChecked(true);
+                    papertowels2.setVisibility(View.VISIBLE);
+                }
+                else{
+                    //unisex2.setChecked(false);
+                    papertowels2.setVisibility(View.INVISIBLE);
+                }
+
                 value = (boolean) dataSnapshot.child("Vending Machine").getValue();
                 if (value == true){
-                    vendingMachine2.setChecked(true);
+                    //vendingMachine2.setChecked(true);
+                    vendingMachine2.setVisibility(View.VISIBLE);
                 }
                 else{
-                    vendingMachine2.setChecked(false);
+                    //vendingMachine2.setChecked(false);
+                    vendingMachine2.setVisibility(View.INVISIBLE);
+                }
+
+                value = (boolean) dataSnapshot.child("Changing Table").getValue();
+                if (value == true){
+                    //unisex2.setChecked(true);
+                    changingTable2.setVisibility(View.VISIBLE);
+                }
+                else{
+                    //unisex2.setChecked(false);
+                    changingTable2.setVisibility(View.INVISIBLE);
                 }
             }else{
                 Log.i(TAG, "this marker does exist, but has no details added");
