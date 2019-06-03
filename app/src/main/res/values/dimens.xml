@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="addLocDetMargin">15dp</dimen>
+    <dimen name="switchDimen">12dp</dimen>
+    <dimen name="switchsideDimen">17dp</dimen>
+    <dimen name="switchbottomDimen">5dp</dimen>
+    <dimen name="switchTextSize">14sp</dimen>
+    <dimen name="card_margin_horizontal">-3dp</dimen>
+    <dimen name="test">-9dp</dimen>
+</resources>
