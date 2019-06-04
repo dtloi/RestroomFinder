@@ -11,11 +11,13 @@
         android:id="@+id/info_window_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:textColor="#00FFFFFF" />
 
     <TextView
         android:id="@+id/info_window_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:textColor="#00FFFFFF" />
 </LinearLayout>
