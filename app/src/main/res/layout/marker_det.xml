@@ -46,9 +46,10 @@
                 android:id="@+id/unisexText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
                 android:text="Unisex/Gender Neutral"
                 android:textColor="#000000" />
 
@@ -56,9 +57,10 @@
                 android:id="@+id/paperTowelsText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
                 android:text="Paper Towels"
                 android:textColor="#000000"/>
 
@@ -66,9 +68,10 @@
                 android:id="@+id/airDryerText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
                 android:text="Air Dryer"
                 android:textColor="#000000"/>
 
@@ -76,9 +79,10 @@
                 android:id="@+id/handicapText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
                 android:text="Handicap Accessible"
                 android:textColor="#000000"/>
 
@@ -86,9 +90,10 @@
                 android:id="@+id/vendingMachineText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
                 android:text="Tampon Vending Machine"
                 android:textColor="#000000"/>
 
@@ -96,9 +101,10 @@
                 android:id="@+id/changingTableText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingLeft="@dimen/switchsideDimen"
+                android:paddingTop="@dimen/switchDimen"
+                android:paddingRight="@dimen/switchsideDimen"
+                android:paddingBottom="@dimen/switchbottomDimen"
                 android:text="Baby Changing Station"
                 android:textColor="#000000"/>
 
