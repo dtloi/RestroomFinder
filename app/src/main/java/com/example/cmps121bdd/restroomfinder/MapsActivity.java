@@ -135,7 +135,7 @@ public class MapsActivity extends FragmentActivity implements
     TextView mrkTitle;
     TextView mrkDet;
     FloatingActionButton nav;
-    Button addLoc;
+    Button addLoc, addDetails;
     Double lat;
     Double lng;
     private static Double curlat, curlng;
@@ -204,6 +204,7 @@ public class MapsActivity extends FragmentActivity implements
         addLocTitle = findViewById(R.id.newMrk_title);
         addLocTitle.setOnClickListener(this);
         addLoc = findViewById(R.id.add);
+        //addDetails =findViewById(R.id.addDetails);
         //addLoc.setOnClickListener(this);
         unisex = findViewById(R.id.unisexBtn);
         papertowels = findViewById(R.id.paperTowelBtn);
@@ -620,7 +621,7 @@ public class MapsActivity extends FragmentActivity implements
                 else{
                     handicap2.setVisibility(View.INVISIBLE);
                 }
-                
+
                 value = (boolean) dataSnapshot.child("Unisex").getValue();
                 if (value == true){
                     //unisex2.setChecked(true);
@@ -670,6 +671,22 @@ public class MapsActivity extends FragmentActivity implements
                     changingTable2.setVisibility(View.INVISIBLE);
                 }
             }else{
+                startActivity(new Intent(MapsActivity.this,Pop.class));
+                Log.i(TAG, "this marker does exist, but has no details added");
+                addDetails =findViewById(R.id.addDetails);
+                /*
+                addDetails.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        inputLocation = curMarker.getTitle();
+                        lat = addNewDets.latitude;
+                        lng = addNewDets.longitude;
+                        markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                        addLocTitle.setText(inputLocation);
+                    }
+                });*/
+                /*
                 Log.i(TAG, "this marker does exist, but has no details added");
                 Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
                     @Override
@@ -681,7 +698,7 @@ public class MapsActivity extends FragmentActivity implements
                         addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                         addLocTitle.setText(inputLocation);
                     }
-                }).show();
+                }).show();*/
             }
         }else{
 
