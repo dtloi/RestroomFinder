@@ -565,7 +565,6 @@ public class MapsActivity extends FragmentActivity implements
     }
 
     public void clearSheets(){
-
         addLocTitle.setText("");
         mrkTitle.setText("");
         unisex.setChecked(false);
