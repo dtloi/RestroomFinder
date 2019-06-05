@@ -129,8 +129,8 @@ public class MapsActivity extends FragmentActivity implements
     //BOTTOM SHEET VIEWS
     private CardView addlocCard, markdetCard;
     private Button addDetpop;
-    private LinearLayout markerDet, addLocation, prefSheet;
-    private BottomSheetBehavior markerDetBehavior, addLocationBehavior, prefBehavior;
+    private LinearLayout markerDet, addLocation;
+    private BottomSheetBehavior markerDetBehavior, addLocationBehavior;
     private EditText addLocTitle;
     private TextView mrkTitle;
     private TextView mrkDet;
@@ -140,7 +140,6 @@ public class MapsActivity extends FragmentActivity implements
     private Double lng;
     private static Double curlat, curlng;
     private Switch unisex, papertowels, airdryer, handicap, vendingMachine, changingTable;
-    private Switch unisexpref, papertowelspref, airdryerpref, handicappref, vendingMachinepref, changingTablepref;
     private static Boolean unisexB, papertowelsB, airdryerB, handicapB, vendingMachineB, changingTableB;
     //CheckBox unisex2, handicap2, vendingMachine2;
     private TextView unisex2, papertowels2, airdryer2, handicap2, vendingMachine2, changingTable2;
@@ -184,8 +183,6 @@ public class MapsActivity extends FragmentActivity implements
         markerDet = findViewById(R.id.marker_det);
         markerDetBehavior = BottomSheetBehavior.from(markerDet);
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        prefSheet =findViewById(R.id.pref);
-        prefBehavior = BottomSheetBehavior.from(prefSheet);
         mrkTitle = findViewById(R.id.btm_title);
         mrkTitle.setOnClickListener(this);
         nav = findViewById(R.id.navigation);
@@ -218,15 +215,6 @@ public class MapsActivity extends FragmentActivity implements
         vendingMachine = findViewById(R.id.vendingmachinBtn);
         changingTable = findViewById(R.id.changingTable);
         //addDetails buttons
-        //prefences buttons
-        unisexpref = findViewById(R.id.unisexBtnPref);
-        papertowelspref = findViewById(R.id.paperTowelBtnPref);
-        airdryerpref = findViewById(R.id.airDryerBtnPref);
-        handicappref = findViewById(R.id.handicapBtnPref);
-        vendingMachinepref = findViewById(R.id.vendingmachinBtnPref);
-        changingTablepref = findViewById(R.id.changingTablePref);
-        accept = findViewById(R.id.accept);
-        //prefences buttons
         database = FirebaseDatabase.getInstance();
         database.setPersistenceEnabled(true);
         myRef = database.getReference("Locations");
@@ -267,7 +255,6 @@ public class MapsActivity extends FragmentActivity implements
         });
 
         gps = new GPSTracker(this);
-        prefBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
     }
     @Override
@@ -422,7 +409,7 @@ public class MapsActivity extends FragmentActivity implements
         settings.setMyLocationButtonEnabled(false);
         settings.setMapToolbarEnabled(false);
         geoLocate("ucsc");
-
+        displayUserRestrooms();
         CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
         mMap.animateCamera(location_up);
         mMap.setOnMyLocationButtonClickListener(this);
@@ -432,7 +419,6 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMapLongClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
-
 
     }
     @Override
@@ -533,28 +519,6 @@ public class MapsActivity extends FragmentActivity implements
                             Double lat = (Double) snapshot.child("Latitude").getValue(); // only works with decimals
                             Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
                             LatLng location = new LatLng(lat, lng);
-                            if(snapshot.child("Unisex").getValue()!=unisexB){
-                                continue;
-                            }
-                            if(snapshot.child("Paper Towels").getValue()!=papertowelsB){
-                                continue;
-                            }
-                            if(snapshot.child("Air Dryer").getValue()!=airdryerB){
-                                continue;
-
-                            }
-                            if(snapshot.child("Handicap").getValue()!=handicapB){
-                                continue;
-
-                            }
-                            if(snapshot.child("Vending Machine").getValue()!=vendingMachineB){
-                                continue;
-
-                            }
-                            if(snapshot.child("Changing Table").getValue()!=changingTableB){
-                                continue;
-
-                            }
                             markDets marker = new markDets((mMap.addMarker(new MarkerOptions().position(location).title(restroomName))),
                                                             unisexB, papertowelsB, airdryerB, handicapB, vendingMachineB,changingTableB);
                             LatLngList.add(marker);
@@ -682,43 +646,40 @@ public class MapsActivity extends FragmentActivity implements
                     changingTable2.setVisibility(View.INVISIBLE);
                 }
             }else{
+                unisex2.setVisibility(View.INVISIBLE);
+                handicap2.setVisibility(View.INVISIBLE);
+                airdryer2.setVisibility(View.INVISIBLE);
+                papertowels2.setVisibility(View.INVISIBLE);
+                vendingMachine2.setVisibility(View.INVISIBLE);
+                changingTable2.setVisibility(View.INVISIBLE);
                 Log.i(TAG, "this marker does exist, but has no details added");
-                LayoutInflater li = LayoutInflater.from(this);
-                View promptsView = li.inflate(R.layout.add_details_popup, null);
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                        this, R.style.AlertDialogTheme);
-                alertDialogBuilder.setView(promptsView);
-                alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(View v) {
                         inputLocation = curMarker.getTitle();
                         lat = addNewDets.latitude;
                         lng = addNewDets.longitude;
-                        addLocTitle.setText(inputLocation);
                         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                         addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                        addLocTitle.setText(inputLocation);
                     }
-                }).setNegativeButton("No", new DialogInterface.OnClickListener(){
-                    public void onClick(DialogInterface dialog,int id) {
-                        dialog.cancel();
-                    }
-                });
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialog.show();
+                }).show();
+
 
 
 
             }
         }else{
+            unisex2.setVisibility(View.INVISIBLE);
+            handicap2.setVisibility(View.INVISIBLE);
+            airdryer2.setVisibility(View.INVISIBLE);
+            papertowels2.setVisibility(View.INVISIBLE);
+            vendingMachine2.setVisibility(View.INVISIBLE);
+            changingTable2.setVisibility(View.INVISIBLE);
             Log.i(TAG, "this marker does exist, but has no details added");
-            LayoutInflater li = LayoutInflater.from(this);
-            View promptsView = li.inflate(R.layout.add_details_popup, null);
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                    this, R.style.AlertDialogTheme);
-            alertDialogBuilder.setView(promptsView);
-            alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+                public void onClick(View v) {
                     inputLocation = curMarker.getTitle();
                     lat = addNewDets.latitude;
                     lng = addNewDets.longitude;
@@ -726,13 +687,7 @@ public class MapsActivity extends FragmentActivity implements
                     addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                     addLocTitle.setText(inputLocation);
                 }
-            }).setNegativeButton("No", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog,int id) {
-                    dialog.cancel();
-                }
-            });
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            }).show();
         }
 
     }
@@ -774,18 +729,6 @@ public class MapsActivity extends FragmentActivity implements
         }else{
             Toast.makeText(this, "Click on the current location button to navigate to the closest restroom", LENGTH_LONG).show();
         }
-
-    }
-    public void accept(View view){
-        Toast.makeText(this, "accept clicked", Toast.LENGTH_SHORT).show();
-        unisexB = unisexpref.isChecked();
-        papertowelsB = papertowelspref.isChecked();
-        airdryerB = airdryerpref.isChecked();
-        handicapB = handicappref.isChecked();
-        vendingMachineB = vendingMachinepref.isChecked();
-        changingTableB = changingTablepref.isChecked();
-        prefBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        displayUserRestrooms();
 
     }
     public boolean location(View view) {
