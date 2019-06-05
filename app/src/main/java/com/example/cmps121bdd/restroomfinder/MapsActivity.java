@@ -2,21 +2,19 @@ package com.example.cmps121bdd.restroomfinder;
 
 
 import android.Manifest;
+import android.support.v7.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
@@ -26,11 +24,11 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
@@ -54,8 +52,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -67,7 +63,6 @@ import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -132,23 +127,28 @@ public class MapsActivity extends FragmentActivity implements
     private static DatabaseReference myRef;
 
     //BOTTOM SHEET VIEWS
-    LinearLayout markerDet, addLocation;
-    BottomSheetBehavior markerDetBehavior, addLocationBehavior;
-    EditText addLocTitle;
-    TextView mrkTitle;
-    FloatingActionButton nav;
-    Button addLoc;
-    Double lat;
-    Double lng;
+    private CardView addlocCard, markdetCard;
+    private Button addDetpop;
+    private LinearLayout markerDet, addLocation, prefSheet;
+    private BottomSheetBehavior markerDetBehavior, addLocationBehavior, prefBehavior;
+    private EditText addLocTitle;
+    private TextView mrkTitle;
+    private TextView mrkDet;
+    private FloatingActionButton nav;
+    private Button addLoc, addDetails, accept;
+    private Double lat;
+    private Double lng;
     private static Double curlat, curlng;
-    Switch unisex, papertowels, airdryer, handicap, vendingMachine, changingTable;
+    private Switch unisex, papertowels, airdryer, handicap, vendingMachine, changingTable;
+    private Switch unisexpref, papertowelspref, airdryerpref, handicappref, vendingMachinepref, changingTablepref;
+    private static Boolean unisexB, papertowelsB, airdryerB, handicapB, vendingMachineB, changingTableB;
     //CheckBox unisex2, handicap2, vendingMachine2;
-    TextView unisex2, papertowels2, airdryer2, handicap2, vendingMachine2, changingTable2;
+    private TextView unisex2, papertowels2, airdryer2, handicap2, vendingMachine2, changingTable2;
     //BOTTOM SHEET VIEWS
 
     private static GPSTracker gps;
-    
-    static ArrayList<Marker> LatLngList = new ArrayList<Marker>();
+    static ArrayList<markDets> LatLngList = new ArrayList<markDets>();
+
 
 
     @Override
@@ -184,6 +184,8 @@ public class MapsActivity extends FragmentActivity implements
         markerDet = findViewById(R.id.marker_det);
         markerDetBehavior = BottomSheetBehavior.from(markerDet);
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        prefSheet =findViewById(R.id.pref);
+        prefBehavior = BottomSheetBehavior.from(prefSheet);
         mrkTitle = findViewById(R.id.btm_title);
         mrkTitle.setOnClickListener(this);
         nav = findViewById(R.id.navigation);
@@ -198,20 +200,33 @@ public class MapsActivity extends FragmentActivity implements
         handicap2 = findViewById(R.id.handicapText);
         vendingMachine2 = findViewById(R.id.vendingMachineText);
         changingTable2 = findViewById(R.id.changingTableText);
-
-
+        addlocCard = findViewById(R.id.adddetcard);
+        addlocCard.setOnClickListener(this);
+        markdetCard = findViewById(R.id.markerdetcard);
+        markdetCard.setOnClickListener(this);
         addLocation = findViewById(R.id.add_location);
         addLocationBehavior = BottomSheetBehavior.from(addLocation);
         addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         addLocTitle = findViewById(R.id.newMrk_title);
         addLocTitle.setOnClickListener(this);
         addLoc = findViewById(R.id.add);
+        //addDetails buttons
         unisex = findViewById(R.id.unisexBtn);
         papertowels = findViewById(R.id.paperTowelBtn);
         airdryer = findViewById(R.id.airDryerBtn);
         handicap = findViewById(R.id.handicapBtn);
         vendingMachine = findViewById(R.id.vendingmachinBtn);
         changingTable = findViewById(R.id.changingTable);
+        //addDetails buttons
+        //prefences buttons
+        unisexpref = findViewById(R.id.unisexBtnPref);
+        papertowelspref = findViewById(R.id.paperTowelBtnPref);
+        airdryerpref = findViewById(R.id.airDryerBtnPref);
+        handicappref = findViewById(R.id.handicapBtnPref);
+        vendingMachinepref = findViewById(R.id.vendingmachinBtnPref);
+        changingTablepref = findViewById(R.id.changingTablePref);
+        accept = findViewById(R.id.accept);
+        //prefences buttons
         database = FirebaseDatabase.getInstance();
         database.setPersistenceEnabled(true);
         myRef = database.getReference("Locations");
@@ -252,7 +267,7 @@ public class MapsActivity extends FragmentActivity implements
         });
 
         gps = new GPSTracker(this);
-
+        prefBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
     }
     @Override
@@ -286,6 +301,7 @@ public class MapsActivity extends FragmentActivity implements
     public static void placeMarkers(String s) {
         Marker newMarker;
         boolean duplicate = false;
+        //boolean prefcheck = false;
         try {
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(s);
@@ -300,12 +316,14 @@ public class MapsActivity extends FragmentActivity implements
                 final LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
 
                 for(int j = 0;j<LatLngList.size();j++){
-                    if(LatLngList.get(j).getPosition().equals(location)){
+                    markDets curMarker = LatLngList.get(j);
+                    if(curMarker.getMarker().getPosition().equals(location)){
                         Log.d("Mapsactivity", "duplicate");
                         duplicate = true;
                     }
+
                 }
-                if (duplicate == false){
+                if ((duplicate == false)){
                     newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
                     if(i == 0){
                         closestMarker = newMarker;
@@ -405,8 +423,6 @@ public class MapsActivity extends FragmentActivity implements
         settings.setMapToolbarEnabled(false);
         geoLocate("ucsc");
 
-
-        displayUserRestrooms();
         CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
         mMap.animateCamera(location_up);
         mMap.setOnMyLocationButtonClickListener(this);
@@ -416,7 +432,6 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMapLongClickListener(this);
         enableMyLocation();
         mMap.setInfoWindowAdapter(new markerView(this));
-
 
 
     }
@@ -435,81 +450,68 @@ public class MapsActivity extends FragmentActivity implements
             prevAddedMarker.remove();
         }
         prevAddedMarker = mMap.addMarker(new MarkerOptions().position(point));
+        curMarker = prevAddedMarker;
         lat = point.latitude;
         lng = point.longitude;
         CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(point,13);
         mMap.animateCamera(location_up);
+        addLocTitle.setText("");
         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        addLocTitle.setText("");
         Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
     }
 
     public void addLocationDetails(){
-        addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        //addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         //Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
         inputLocation = addLocTitle.getText().toString();
-        prevAddedMarker.setTitle(inputLocation);
-        addLocationFinal();
-
-    }
-    public void addLocationDetailsMap(){
-        inputLocation = addLocTitle.getText().toString();
-        addLocationFinal();
-    }
-
-    public void addLocationFinal() {
+        curMarker.setTitle(inputLocation);
+        myRef.child(inputLocation).child("Latitude").setValue(lat);
+        myRef.child(inputLocation).child("Longitude").setValue(lng);
+        //prevAddedMarker.setTitle(inputLocation);
         // CHECK FOR EXISTING VALUE
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChild(inputLocation)){
-                    doesNameExist = true;
-                    Toast.makeText(MapsActivity.this, "Please use a different name", Toast.LENGTH_SHORT).show();
-                }else{
-                    if (inputLocation.equals("")) {
-                        //Toast.makeText(this, "Please input a name.", Toast.LENGTH_SHORT).show();
-                        Log.i(TAG, "Please input a name.");
+                if (inputLocation.equals("")) {
+                    //Toast.makeText(this, "Please input a name.", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "Please input a name.");
+                } else {
+                    myRef.child(inputLocation).child("Latitude").setValue(lat);
+                    myRef.child(inputLocation).child("Longitude").setValue(lng);
+                    if (unisex.isChecked()) {
+                        myRef.child(inputLocation).child("Unisex").setValue(true);
                     } else {
-                        myRef.child(inputLocation).child("Latitude").setValue(lat);
-                        myRef.child(inputLocation).child("Longitude").setValue(lng);
-                        if (unisex.isChecked()) {
-                            myRef.child(inputLocation).child("Unisex").setValue(true);
-                        } else {
-                            myRef.child(inputLocation).child("Unisex").setValue(false);
-                        }
-                        if (papertowels.isChecked()) {
-                            myRef.child(inputLocation).child("Paper Towels").setValue(true);
-                        } else {
-                            myRef.child(inputLocation).child("Paper Towels").setValue(false);
-                        }
-                        if (airdryer.isChecked()) {
-                            myRef.child(inputLocation).child("Air Dryer").setValue(true);
-                        } else {
-                            myRef.child(inputLocation).child("Air Dryer").setValue(false);
-                        }
-                        if (handicap.isChecked()) {
-                            myRef.child(inputLocation).child("Handicap").setValue(true);
-                        } else {
-                            myRef.child(inputLocation).child("Handicap").setValue(false);
-                        }
-                        if (vendingMachine.isChecked()) {
-                            myRef.child(inputLocation).child("Vending Machine").setValue(true);
-                        } else {
-                            myRef.child(inputLocation).child("Vending Machine").setValue(false);
-                        }
-                        if (changingTable.isChecked()) {
-                            myRef.child(inputLocation).child("Changing Table").setValue(true);
-                        } else {
-                            myRef.child(inputLocation).child("Changing Table").setValue(false);
-                        }
-                        Log.i(TAG, "Location Added!");
-                        prevAddedMarker = null;
-                        addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        doesNameExist = false;
+                        myRef.child(inputLocation).child("Unisex").setValue(false);
                     }
+                    if (papertowels.isChecked()) {
+                        myRef.child(inputLocation).child("Paper Towels").setValue(true);
+                    } else {
+                        myRef.child(inputLocation).child("Paper Towels").setValue(false);
+                    }
+                    if (airdryer.isChecked()) {
+                        myRef.child(inputLocation).child("Air Dryer").setValue(true);
+                    } else {
+                        myRef.child(inputLocation).child("Air Dryer").setValue(false);
+                    }
+                    if (handicap.isChecked()) {
+                        myRef.child(inputLocation).child("Handicap").setValue(true);
+                    } else {
+                        myRef.child(inputLocation).child("Handicap").setValue(false);
+                    }
+                    if (vendingMachine.isChecked()) {
+                        myRef.child(inputLocation).child("Vending Machine").setValue(true);
+                    } else {
+                        myRef.child(inputLocation).child("Vending Machine").setValue(false);
+                    }
+                    if (changingTable.isChecked()) {
+                        myRef.child(inputLocation).child("Changing Table").setValue(true);
+                    } else {
+                        myRef.child(inputLocation).child("Changing Table").setValue(false);
+                    }
+                    Log.i(TAG, "Location Added!");
+                    prevAddedMarker = null;
                 }
-                Log.i(TAG, "(addLocationDetailsMap) Does this restroom name already exist? : " + doesNameExist);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -520,6 +522,7 @@ public class MapsActivity extends FragmentActivity implements
 
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
+
     private void displayUserRestrooms() {
         database.getReference("Locations")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -530,7 +533,31 @@ public class MapsActivity extends FragmentActivity implements
                             Double lat = (Double) snapshot.child("Latitude").getValue(); // only works with decimals
                             Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
                             LatLng location = new LatLng(lat, lng);
-                            LatLngList.add(mMap.addMarker(new MarkerOptions().position(location).title(restroomName)));
+                            if(snapshot.child("Unisex").getValue()!=unisexB){
+                                continue;
+                            }
+                            if(snapshot.child("Paper Towels").getValue()!=papertowelsB){
+                                continue;
+                            }
+                            if(snapshot.child("Air Dryer").getValue()!=airdryerB){
+                                continue;
+
+                            }
+                            if(snapshot.child("Handicap").getValue()!=handicapB){
+                                continue;
+
+                            }
+                            if(snapshot.child("Vending Machine").getValue()!=vendingMachineB){
+                                continue;
+
+                            }
+                            if(snapshot.child("Changing Table").getValue()!=changingTableB){
+                                continue;
+
+                            }
+                            markDets marker = new markDets((mMap.addMarker(new MarkerOptions().position(location).title(restroomName))),
+                                                            unisexB, papertowelsB, airdryerB, handicapB, vendingMachineB,changingTableB);
+                            LatLngList.add(marker);
 
                         }
                     }
@@ -553,13 +580,15 @@ public class MapsActivity extends FragmentActivity implements
             //Log.d("MapsActivity", "here2");
             curMarker = marker;
             String mark_title = marker.getTitle();
+            Log.d(TAG, mark_title);
             addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            myRef.child(mark_title).addListenerForSingleValueEvent(this);
+
             mrkTitle.setText(mark_title);
             //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
             CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(marker.getPosition(),DEFAULT_ZOOM);
             mMap.animateCamera(location_up);
+            myRef.child(mark_title).addListenerForSingleValueEvent(this);
         }
         return false;
     }
@@ -572,7 +601,10 @@ public class MapsActivity extends FragmentActivity implements
         handicap.setChecked(false);
         //handicap2.setChecked(false);
         vendingMachine.setChecked(false);
+        papertowels.setChecked(false);
+
         //vendingMachine2.setChecked(false);
+
     }
 
     @Override
@@ -591,6 +623,7 @@ public class MapsActivity extends FragmentActivity implements
             Log.i(TAG, "markLat.equals(curlat))" +markLat.equals(curlat));
             if(markLng.equals(curlng) && markLat.equals(curlat)){
                 Log.i(TAG, "this marker has details added");
+
                 boolean value = (boolean) dataSnapshot.child("Handicap").getValue();
                 if (value == true){
                     //handicap2.setChecked(true);
@@ -599,63 +632,93 @@ public class MapsActivity extends FragmentActivity implements
                 else{
                     handicap2.setVisibility(View.INVISIBLE);
                 }
+
                 value = (boolean) dataSnapshot.child("Unisex").getValue();
                 if (value == true){
+                    //unisex2.setChecked(true);
                     unisex2.setVisibility(View.VISIBLE);
                 }
                 else{
+                    //unisex2.setChecked(false);
                     unisex2.setVisibility(View.INVISIBLE);
                 }
 
                 value = (boolean) dataSnapshot.child("Air Dryer").getValue();
                 if (value == true){
+                    //unisex2.setChecked(true);
                     airdryer2.setVisibility(View.VISIBLE);
                 }
                 else{
+                    //unisex2.setChecked(false);
                     airdryer2.setVisibility(View.INVISIBLE);
                 }
                 value = (boolean) dataSnapshot.child("Paper Towels").getValue();
                 if (value == true){
+                    //unisex2.setChecked(true);
                     papertowels2.setVisibility(View.VISIBLE);
                 }
                 else{
+                    //unisex2.setChecked(false);
                     papertowels2.setVisibility(View.INVISIBLE);
                 }
 
                 value = (boolean) dataSnapshot.child("Vending Machine").getValue();
                 if (value == true){
+                    //vendingMachine2.setChecked(true);
                     vendingMachine2.setVisibility(View.VISIBLE);
                 }
                 else{
+                    //vendingMachine2.setChecked(false);
                     vendingMachine2.setVisibility(View.INVISIBLE);
                 }
 
                 value = (boolean) dataSnapshot.child("Changing Table").getValue();
                 if (value == true){
+                    //unisex2.setChecked(true);
                     changingTable2.setVisibility(View.VISIBLE);
                 }
                 else{
+                    //unisex2.setChecked(false);
                     changingTable2.setVisibility(View.INVISIBLE);
                 }
             }else{
                 Log.i(TAG, "this marker does exist, but has no details added");
-                Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
+                LayoutInflater li = LayoutInflater.from(this);
+                View promptsView = li.inflate(R.layout.add_details_popup, null);
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                        this, R.style.AlertDialogTheme);
+                alertDialogBuilder.setView(promptsView);
+                alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(View v) {
+                    public void onClick(DialogInterface dialogInterface, int i) {
                         inputLocation = curMarker.getTitle();
                         lat = addNewDets.latitude;
                         lng = addNewDets.longitude;
+                        addLocTitle.setText(inputLocation);
                         markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                         addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                        addLocTitle.setText(inputLocation);
                     }
-                }).show();
+                }).setNegativeButton("No", new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog,int id) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+
+
+
             }
         }else{
             Log.i(TAG, "this marker does exist, but has no details added");
-            Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
+            LayoutInflater li = LayoutInflater.from(this);
+            View promptsView = li.inflate(R.layout.add_details_popup, null);
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    this, R.style.AlertDialogTheme);
+            alertDialogBuilder.setView(promptsView);
+            alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(DialogInterface dialogInterface, int i) {
                     inputLocation = curMarker.getTitle();
                     lat = addNewDets.latitude;
                     lng = addNewDets.longitude;
@@ -663,7 +726,13 @@ public class MapsActivity extends FragmentActivity implements
                     addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                     addLocTitle.setText(inputLocation);
                 }
-            }).show();
+            }).setNegativeButton("No", new DialogInterface.OnClickListener(){
+                public void onClick(DialogInterface dialog,int id) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
         }
 
     }
@@ -673,11 +742,15 @@ public class MapsActivity extends FragmentActivity implements
 
     }
     public void add(View view){
-        if(prevAddedMarker!=null){
-            addLocationDetails();
-        }else{
-            addLocationDetailsMap();
+        addLocationDetails();
+        addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        /*if(prevAddedMarker!=null){
+
         }
+        /*else{
+            addLocationDetailsMap();
+            addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }*/
 
     }
     @Override
@@ -701,6 +774,18 @@ public class MapsActivity extends FragmentActivity implements
         }else{
             Toast.makeText(this, "Click on the current location button to navigate to the closest restroom", LENGTH_LONG).show();
         }
+
+    }
+    public void accept(View view){
+        Toast.makeText(this, "accept clicked", Toast.LENGTH_SHORT).show();
+        unisexB = unisexpref.isChecked();
+        papertowelsB = papertowelspref.isChecked();
+        airdryerB = airdryerpref.isChecked();
+        handicapB = handicappref.isChecked();
+        vendingMachineB = vendingMachinepref.isChecked();
+        changingTableB = changingTablepref.isChecked();
+        prefBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        displayUserRestrooms();
 
     }
     public boolean location(View view) {
@@ -739,7 +824,7 @@ public class MapsActivity extends FragmentActivity implements
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);*/
             case R.id.btm_title:
-                Toast.makeText(this, "title clicked", Toast.LENGTH_SHORT).show();
+
                 addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 markerDetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 break;
@@ -867,6 +952,8 @@ public class MapsActivity extends FragmentActivity implements
             enableGPS();
         }
     }
+
+
 
     //Check if GPS is enabled, if not, enables
     //PERMISSIONS STUFF FOR LOCATION----------------------------------------------------------

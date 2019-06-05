@@ -89,6 +89,7 @@
 
         <!-- include bottom sheet -->
         <include layout="@layout/add_location" />
+        <include layout="@layout/prefences" />
 
 
 
