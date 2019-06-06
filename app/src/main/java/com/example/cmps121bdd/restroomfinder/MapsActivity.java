@@ -74,6 +74,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -149,6 +150,7 @@ public class MapsActivity extends FragmentActivity implements
     private static GPSTracker gps;
     static ArrayList<Marker> LatLngList = new ArrayList<Marker>();
     static ArrayList<Marker> MapMarkList = new ArrayList<Marker>();
+    static ArrayList<Marker> searchList = new ArrayList<Marker>();
 
 
     @Override
@@ -244,10 +246,12 @@ public class MapsActivity extends FragmentActivity implements
                 LatLng location = place.getLatLng();
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getLatLng());
                 geoLocate(name);
-                displayUserRestrooms();
+                //displayUserRestrooms();
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, DEFAULT_ZOOM)); //move camera to input location
-                mMap.addMarker(new MarkerOptions().position(location).title(name)); //add marker
-
+                addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                //Marker searchMarker = mMap.addMarker(new MarkerOptions().position(location).title(name)); //add marker
+                //searchList.add(searchMarker);
             }
 
             @Override
@@ -413,6 +417,11 @@ public class MapsActivity extends FragmentActivity implements
         //addLocationBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         //Toast.makeText(this, "Adding location details", Toast.LENGTH_SHORT).show();
         inputLocation = addLocTitle.getText().toString();
+        if (inputLocation.equals("")) {
+            //Toast.makeText(this, "Please input a name.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please input a name", Toast.LENGTH_SHORT).show();
+            return;
+        }
         curMarker.setTitle(inputLocation);
         myRef.child(inputLocation).child("Latitude").setValue(lat);
         myRef.child(inputLocation).child("Longitude").setValue(lng);
@@ -421,71 +430,59 @@ public class MapsActivity extends FragmentActivity implements
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (inputLocation.equals("")) {
-                    //Toast.makeText(this, "Please input a name.", Toast.LENGTH_SHORT).show();
-                    Log.i(TAG, "Please input a name.");
+                myRef.child(inputLocation).child("Latitude").setValue(lat);
+                myRef.child(inputLocation).child("Longitude").setValue(lng);
+                if (unisex.isChecked()) {
+                    myRef.child(inputLocation).child("Unisex").setValue(true);
                 } else {
-                    myRef.child(inputLocation).child("Latitude").setValue(lat);
-                    myRef.child(inputLocation).child("Longitude").setValue(lng);
-                    if (unisex.isChecked()) {
-                        myRef.child(inputLocation).child("Unisex").setValue(true);
-                    } else {
-                        myRef.child(inputLocation).child("Unisex").setValue(false);
-                    }
-                    if (papertowels.isChecked()) {
-                        myRef.child(inputLocation).child("Paper Towels").setValue(true);
-                    } else {
-                        myRef.child(inputLocation).child("Paper Towels").setValue(false);
-                    }
-                    if (airdryer.isChecked()) {
-                        myRef.child(inputLocation).child("Air Dryer").setValue(true);
-                    } else {
-                        myRef.child(inputLocation).child("Air Dryer").setValue(false);
-                    }
-                    if (handicap.isChecked()) {
-                        myRef.child(inputLocation).child("Handicap").setValue(true);
-                    } else {
-                        myRef.child(inputLocation).child("Handicap").setValue(false);
-                    }
-                    if (vendingMachine.isChecked()) {
-                        myRef.child(inputLocation).child("Vending Machine").setValue(true);
-                    } else {
-                        myRef.child(inputLocation).child("Vending Machine").setValue(false);
-                    }
-                    if (changingTable.isChecked()) {
-                        myRef.child(inputLocation).child("Changing Table").setValue(true);
-                    } else {
-                        myRef.child(inputLocation).child("Changing Table").setValue(false);
-                    }
-                    Log.i(TAG, "Location Added!");
-                    prevAddedMarker = null;
+                    myRef.child(inputLocation).child("Unisex").setValue(false);
                 }
+                if (papertowels.isChecked()) {
+                    myRef.child(inputLocation).child("Paper Towels").setValue(true);
+                } else {
+                    myRef.child(inputLocation).child("Paper Towels").setValue(false);
+                }
+                if (airdryer.isChecked()) {
+                    myRef.child(inputLocation).child("Air Dryer").setValue(true);
+                } else {
+                    myRef.child(inputLocation).child("Air Dryer").setValue(false);
+                }
+                if (handicap.isChecked()) {
+                    myRef.child(inputLocation).child("Handicap").setValue(true);
+                } else {
+                    myRef.child(inputLocation).child("Handicap").setValue(false);
+                }
+                if (vendingMachine.isChecked()) {
+                    myRef.child(inputLocation).child("Vending Machine").setValue(true);
+                } else {
+                    myRef.child(inputLocation).child("Vending Machine").setValue(false);
+                }
+                if (changingTable.isChecked()) {
+                    myRef.child(inputLocation).child("Changing Table").setValue(true);
+                } else {
+                    myRef.child(inputLocation).child("Changing Table").setValue(false);
+                }
+                Log.i(TAG, "Location Added!");
+                prevAddedMarker = null;
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
-        getClosestRestroom();
+
+        getClosestRestroom(LatLngList);
+        getClosestRestroom(MapMarkList);
+        getClosestRestroom(searchList);
+
         // CHECK FOR EXISTING VALUE
     }
 
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
 
-    public void getClosestRestroom(){
-        for(int j = 0;j<LatLngList.size();j++){
-            Marker curMarker = LatLngList.get(j);
-            Location closMark = new Location(curMarker.getId());
-            closMark.setLatitude(curMarker.getPosition().latitude);
-            closMark.setLongitude(curMarker.getPosition().longitude);
-            Log.d(TAG, Float.toString(closMark.distanceTo(curLocation))+" > "+curDist);
-            if(closMark.distanceTo(curLocation)<curDist){
-                curDist = (double) closMark.distanceTo(curLocation);
-                closestMarker = curMarker;
-            }
-        }
-        for(int j = 0;j<MapMarkList.size();j++){
-            Marker curMarker = MapMarkList.get(j);
+    public static void getClosestRestroom(ArrayList<Marker> check){
+        for(int j = 0;j<check.size();j++){
+            Marker curMarker = check.get(j);
             Location closMark = new Location(curMarker.getId());
             closMark.setLatitude(curMarker.getPosition().latitude);
             closMark.setLongitude(curMarker.getPosition().longitude);
@@ -515,8 +512,6 @@ public class MapsActivity extends FragmentActivity implements
                                 Marker marker = mMap.addMarker(new MarkerOptions().position(location).title(restroomName));
                                 LatLngList.add(marker);
                             }
-
-
                         }
                     }
                     @Override
@@ -558,6 +553,7 @@ public class MapsActivity extends FragmentActivity implements
                 }
 
             }
+            getClosestRestroom(MapMarkList);
         } catch (JSONException e) {
             //Log.e(LOG_TAG, "Error processing JSON results", e);
         }
@@ -598,6 +594,8 @@ public class MapsActivity extends FragmentActivity implements
         //handicap2.setChecked(false);
         vendingMachine.setChecked(false);
         papertowels.setChecked(false);
+        changingTable.setChecked(false);
+        airdryer.setChecked(false);
 
         //vendingMachine2.setChecked(false);
 
@@ -685,7 +683,7 @@ public class MapsActivity extends FragmentActivity implements
                 vendingMachine2.setVisibility(View.INVISIBLE);
                 changingTable2.setVisibility(View.INVISIBLE);
                 Log.i(TAG, "this marker does exist, but has no details added");
-                Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
+                Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_SHORT).setAction("ADD", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         inputLocation = curMarker.getTitle();
@@ -709,7 +707,7 @@ public class MapsActivity extends FragmentActivity implements
             vendingMachine2.setVisibility(View.INVISIBLE);
             changingTable2.setVisibility(View.INVISIBLE);
             Log.i(TAG, "this marker does exist, but has no details added");
-            Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_LONG).setAction("ADD", new View.OnClickListener() {
+            Snackbar.make(myCoorLayout, "ADD SOMETHING", Snackbar.LENGTH_SHORT).setAction("ADD", new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     inputLocation = curMarker.getTitle();
@@ -788,7 +786,8 @@ public class MapsActivity extends FragmentActivity implements
             CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(curloc,DEFAULT_ZOOM);
             mMap.animateCamera(location_up);
         }
-        getClosestRestroom();
+        getClosestRestroom(LatLngList);
+        getClosestRestroom(MapMarkList);
 
         return false;
     }

@@ -54,7 +54,7 @@
                 android:paddingTop="@dimen/switchDimen"
                 android:paddingRight="@dimen/switchsideDimen"
                 android:paddingBottom="@dimen/switchbottomDimen"
-                android:text="Gender Neutral/Unisex"
+                android:text="Gender Neutral"
                 android:textSize="@dimen/switchTextSize" />
 
             <Switch
