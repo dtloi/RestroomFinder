@@ -561,11 +561,11 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public boolean onMarkerClick(Marker marker) {
         clearSheets();
-        Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "existing marker clicked", Toast.LENGTH_SHORT).show();
         String inputLocation = marker.getTitle();
         if(marker.equals(prevAddedMarker)){
             //Log.d("MapsActivity", "here");
-            Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "prevAddedMarker clicked", Toast.LENGTH_SHORT).show();
             markerDetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             addLocationBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }else{
