@@ -139,15 +139,16 @@ public class MapsActivity extends FragmentActivity implements
     private Double lat;
     private Double lng;
     private static Double curlat, curlng;
+    private static Double curDist= Double.MAX_VALUE;
     private Switch unisex, papertowels, airdryer, handicap, vendingMachine, changingTable;
-    private static Boolean unisexB, papertowelsB, airdryerB, handicapB, vendingMachineB, changingTableB;
+    private static Location curLocation = new Location("current location");
     //CheckBox unisex2, handicap2, vendingMachine2;
     private TextView unisex2, papertowels2, airdryer2, handicap2, vendingMachine2, changingTable2;
     //BOTTOM SHEET VIEWS
 
     private static GPSTracker gps;
-    static ArrayList<markDets> LatLngList = new ArrayList<markDets>();
-
+    static ArrayList<Marker> LatLngList = new ArrayList<Marker>();
+    static ArrayList<Marker> MapMarkList = new ArrayList<Marker>();
 
 
     @Override
@@ -221,6 +222,7 @@ public class MapsActivity extends FragmentActivity implements
 
 
 
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
@@ -285,49 +287,7 @@ public class MapsActivity extends FragmentActivity implements
         imageDownloader.execute(b.toString());
     }
 
-    public static void placeMarkers(String s) {
-        Marker newMarker;
-        boolean duplicate = false;
-        //boolean prefcheck = false;
-        try {
-            // Create a JSON object hierarchy from the results
-            JSONObject jsonObj = new JSONObject(s);
-            JSONArray predsJsonArray = jsonObj.getJSONArray("results");
 
-            // Extract the lat and lng and add markers there
-            for (int i = 0; i < predsJsonArray.length(); i++) {
-                JSONObject jsonObject = (JSONObject) predsJsonArray.get(i);
-                JSONObject jsonObject2 = (JSONObject) jsonObject.get("geometry");
-                JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
-
-                final LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
-
-                for(int j = 0;j<LatLngList.size();j++){
-                    markDets curMarker = LatLngList.get(j);
-                    if(curMarker.getMarker().getPosition().equals(location)){
-                        Log.d("Mapsactivity", "duplicate");
-                        duplicate = true;
-                    }
-
-                }
-                if ((duplicate == false)){
-                    newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
-                    if(i == 0){
-                        closestMarker = newMarker;
-                    }
-                }
-                else{
-                    duplicate = false;
-                }
-
-
-            }
-
-
-        } catch (JSONException e) {
-            //Log.e(LOG_TAG, "Error processing JSON results", e);
-        }
-    }
 
     public void geoLocate(String userLocation) {
         Geocoder geocoder = new Geocoder(MapsActivity.this);
@@ -408,8 +368,9 @@ public class MapsActivity extends FragmentActivity implements
         settings.setCompassEnabled(false);
         settings.setMyLocationButtonEnabled(false);
         settings.setMapToolbarEnabled(false);
-        geoLocate("ucsc");
         displayUserRestrooms();
+        geoLocate("ucsc");
+
         CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM);
         mMap.animateCamera(location_up);
         mMap.setOnMyLocationButtonClickListener(this);
@@ -509,6 +470,32 @@ public class MapsActivity extends FragmentActivity implements
     //------------------------------------------------------MAP STUFF---------------------------------------------------------------------
     //------------------------------------------------------MARKER STUFF------------------------------------------------------------------
 
+    public void getClosestRestroom(){
+        for(int j = 0;j<LatLngList.size();j++){
+            Marker curMarker = LatLngList.get(j);
+            Location closMark = new Location(curMarker.getId());
+            closMark.setLatitude(curMarker.getPosition().latitude);
+            closMark.setLongitude(curMarker.getPosition().longitude);
+            Log.d(TAG, Float.toString(closMark.distanceTo(curLocation))+" > "+curDist);
+            if(closMark.distanceTo(curLocation)<curDist){
+                curDist = (double) closMark.distanceTo(curLocation);
+                closestMarker = curMarker;
+            }
+        }
+        for(int j = 0;j<MapMarkList.size();j++){
+            Marker curMarker = MapMarkList.get(j);
+            Location closMark = new Location(curMarker.getId());
+            closMark.setLatitude(curMarker.getPosition().latitude);
+            closMark.setLongitude(curMarker.getPosition().longitude);
+            Log.d(TAG, Float.toString(closMark.distanceTo(curLocation))+" > "+curDist);
+            if(closMark.distanceTo(curLocation)<curDist){
+                curDist = (double) closMark.distanceTo(curLocation);
+                closestMarker = curMarker;
+            }
+        }
+        Log.d(TAG, "closest restroom: "+closestMarker);
+    }
+
     private void displayUserRestrooms() {
         database.getReference("Locations")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -518,10 +505,15 @@ public class MapsActivity extends FragmentActivity implements
                             String restroomName = snapshot.getKey();
                             Double lat = (Double) snapshot.child("Latitude").getValue(); // only works with decimals
                             Double lng = (Double) snapshot.child("Longitude").getValue(); // only works with decimals
-                            LatLng location = new LatLng(lat, lng);
-                            markDets marker = new markDets((mMap.addMarker(new MarkerOptions().position(location).title(restroomName))),
-                                                            unisexB, papertowelsB, airdryerB, handicapB, vendingMachineB,changingTableB);
-                            LatLngList.add(marker);
+                            if(lat != null && lng != null){
+                                LatLng location = new LatLng(lat, lng);
+                                Location closMark = new Location("locationA");
+                                closMark.setLatitude(lat);
+                                closMark.setLongitude(lng);
+                                Marker marker = mMap.addMarker(new MarkerOptions().position(location).title(restroomName));
+                                LatLngList.add(marker);
+                            }
+
 
                         }
                     }
@@ -529,6 +521,44 @@ public class MapsActivity extends FragmentActivity implements
                     public void onCancelled(DatabaseError databaseError) {
                     }
                 });
+
+    }
+    public static void placeMarkers(String s) {
+        Marker newMarker;
+        boolean duplicate = false;
+        //boolean prefcheck = false;
+        try {
+            // Create a JSON object hierarchy from the results
+            JSONObject jsonObj = new JSONObject(s);
+            JSONArray predsJsonArray = jsonObj.getJSONArray("results");
+
+            // Extract the lat and lng and add markers there
+            for (int i = 0; i < predsJsonArray.length(); i++) {
+                JSONObject jsonObject = (JSONObject) predsJsonArray.get(i);
+                JSONObject jsonObject2 = (JSONObject) jsonObject.get("geometry");
+                JSONObject jsonObject3 = (JSONObject) jsonObject2.get("location");
+
+                final LatLng location = new LatLng((Double) jsonObject3.get("lat"), (Double) jsonObject3.get("lng"));
+
+                for(int j = 0;j<LatLngList.size();j++){
+                    Marker curMarker = LatLngList.get(j);
+                    if(curMarker.getPosition().equals(location)){
+                        Log.d("Mapsactivity", "duplicate");
+                        duplicate = true;
+                    }
+                }
+                if ((duplicate == false)){
+                    newMarker = mMap.addMarker(new MarkerOptions().position(location).title("Restroom"));
+                    MapMarkList.add(newMarker);
+                }
+                else{
+                    duplicate = false;
+                }
+
+            }
+        } catch (JSONException e) {
+            //Log.e(LOG_TAG, "Error processing JSON results", e);
+        }
     }
     @Override
     public boolean onMarkerClick(Marker marker) {
@@ -725,6 +755,7 @@ public class MapsActivity extends FragmentActivity implements
             mapIntent.setPackage("com.google.android.apps.maps");
             startActivity(mapIntent);
         }else if(closestMarker != null){              //if there is no marker clicked then navigate to the closest restroom
+            displayUserRestrooms();
             onMarkerClick(closestMarker);
         }else{
             Toast.makeText(this, "Click on the current location button to navigate to the closest restroom", LENGTH_LONG).show();
@@ -748,11 +779,15 @@ public class MapsActivity extends FragmentActivity implements
         gps = new GPSTracker(this);
         curlat= gps.getLatitude(); // returns latitude
         curlng= gps.getLongitude();
+        curLocation.setLatitude(curlat);
+        curLocation.setLongitude(curlng);
         LatLng curloc = new LatLng(curlat, curlng);
         if((curlat != 0.0 && curlng != 0.0)){
             CameraUpdate location_up = CameraUpdateFactory.newLatLngZoom(curloc,DEFAULT_ZOOM);
             mMap.animateCamera(location_up);
         }
+        getClosestRestroom();
+
         return false;
     }
     @Override
