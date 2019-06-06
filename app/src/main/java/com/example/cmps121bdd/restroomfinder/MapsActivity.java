@@ -397,6 +397,7 @@ public class MapsActivity extends FragmentActivity implements
             prevAddedMarker.remove();
         }
         prevAddedMarker = mMap.addMarker(new MarkerOptions().position(point));
+        LatLngList.add(prevAddedMarker);
         curMarker = prevAddedMarker;
         lat = point.latitude;
         lng = point.longitude;
@@ -464,6 +465,7 @@ public class MapsActivity extends FragmentActivity implements
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
+        getClosestRestroom();
         // CHECK FOR EXISTING VALUE
     }
 
